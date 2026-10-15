@@ -1,0 +1,41 @@
+{
+  "name": "plotline",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Real estate platform MVP: buyer portal, developer console with CRM, construction tracking, contractors, materials, vendors and site attendance on Supabase.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "seed": "node scripts/seed.mjs",
+    "db:types": "supabase gen types typescript --linked > src/lib/database.types.ts"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "6.3.1",
+    "@fontsource-variable/public-sans": "5.3.0",
+    "@fontsource/jetbrains-mono": "5.3.0",
+    "@fontsource/schibsted-grotesk": "5.3.0",
+    "@react-three/drei": "10.7.9",
+    "@react-three/fiber": "9.8.2",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.117.3",
+    "framer-motion": "12.43.0",
+    "lucide-react": "1.57.0",
+    "next": "15.5.28",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "three": "0.180.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "22.19.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.2.3",
+    "@types/three": "0.180.0",
+    "supabase": "2.121.0",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3"
+  }
+}
