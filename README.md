@@ -90,7 +90,7 @@ The amount always comes from the database. The webhook is the source of truth an
 
 GitHub stores the code; it can't run it (GitHub Pages only serves static files, and this app needs a server and a database). **Supabase** runs the database and **Vercel** runs the website; Vercel redeploys by itself on every push to `main`.
 
-**The database is already live**: Supabase project `plotline` (Mumbai) has all 11 migrations, the demo data, the documents and the every-minute hold cleanup. The public connection settings for it are in `.env.production`, so the site needs only one secret.
+**The database is already live**: Supabase project `plotline` (Mumbai) has the migrations, the demo data, the documents and the every-minute hold cleanup. The public connection settings for it are in `.env.production`, so the site needs only one secret.
 
 1. **Deploy the website**: [vercel.com/new](https://vercel.com/new) → *Continue with GitHub* → **Import** `real_estate_startup` → **Deploy**. Nothing to fill in. In about two minutes you get a link like `https://real-estate-startup.vercel.app`.
 2. **Add the one secret** (needed for token payments, ID upload and linking portal logins): Supabase → Project Settings → **API Keys** → copy the **secret** key (or the legacy `service_role` key). In Vercel → your project → Settings → **Environment Variables** add `SUPABASE_SERVICE_ROLE_KEY` = that key → Deployments → ⋯ → **Redeploy**.
@@ -142,6 +142,7 @@ scripts/seed.mjs       demo data for any Supabase project
 | 0009 realtime | publishes the live tables |
 | 0010 hold cleanup | pg_cron job that frees expired 15-minute holds every minute (skipped where pg_cron isn't installed) |
 | 0011 hardening | trigger functions not callable over the API; fixed search_path (from the Supabase security advisor) |
+| 0012–0013 setup tooling | the `http` extension used once to upload the hosted demo's PDFs, then removed |
 
 Run the SQL tests on any Postgres 15+:
 ```bash
