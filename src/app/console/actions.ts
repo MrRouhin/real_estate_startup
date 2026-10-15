@@ -3,7 +3,7 @@
 // then writes as that person, so row-level security still applies.
 import { revalidatePath } from 'next/cache';
 import { requireStaff } from '@/lib/auth';
-import { createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient, hasServiceKey, SERVICE_KEY_MISSING } from '@/lib/supabase/server';
 import { fail, friendly, numOf, ok, str, type ActionResult } from '@/lib/actions';
 import type { LeadStage } from '@/lib/types';
 
@@ -329,6 +329,7 @@ export const linkLogin: A = async (_, fd) => {
   const { orgId } = await requireStaff();
   const kind = str(fd, 'kind') as 'contractor' | 'vendor' | 'employee', id = str(fd, 'id')!, email = str(fd, 'email')?.toLowerCase();
   if (!email) return fail('Enter the person’s login email.');
+  if (!hasServiceKey()) return fail(SERVICE_KEY_MISSING);
   const admin = createAdminClient(); // profiles of other people are not readable by staff
   const { data: prof } = await admin.from('profiles').select('id, role').eq('email', email).maybeSingle();
   if (!prof) return fail('No account with that email. Ask them to sign up first, then link it.');

@@ -4,7 +4,7 @@
 // The amount always comes from the database, never from the app.
 import crypto from 'node:crypto';
 import { z } from 'zod';
-import { createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient, hasServiceKey, SERVICE_KEY_MISSING } from '@/lib/supabase/server';
 import { createRazorpayOrder, PAYMENTS_MODE, userClient } from '@/lib/payments';
 import { friendly } from '@/lib/actions';
 
@@ -14,6 +14,7 @@ const Body = z.union([
 ]);
 
 export async function POST(req: Request) {
+  if (!hasServiceKey()) return Response.json({ error: SERVICE_KEY_MISSING }, { status: 503 });
   const db = await userClient(req);
   const { data: { user } } = await db.auth.getUser();
   if (!user) return Response.json({ error: 'Sign in first.' }, { status: 401 });

@@ -1,12 +1,13 @@
 // POST /api/payments/verify — the object Razorpay Checkout returns on success.
 // Gives the buyer an instant confirmation; the webhook does the same job as a backup.
 import { z } from 'zod';
-import { createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient, hasServiceKey, SERVICE_KEY_MISSING } from '@/lib/supabase/server';
 import { hmacMatches, userClient } from '@/lib/payments';
 
 const Body = z.object({ razorpay_order_id: z.string(), razorpay_payment_id: z.string(), razorpay_signature: z.string() });
 
 export async function POST(req: Request) {
+  if (!hasServiceKey()) return Response.json({ error: SERVICE_KEY_MISSING }, { status: 503 });
   const db = await userClient(req);
   const { data: { user } } = await db.auth.getUser();
   if (!user) return Response.json({ error: 'Sign in first.' }, { status: 401 });

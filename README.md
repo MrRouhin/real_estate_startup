@@ -54,13 +54,9 @@ npm install
 ```bash
 npx supabase login
 npx supabase link --project-ref <your-project-ref>
-npx supabase db push            # runs the 9 migrations in supabase/migrations
+npx supabase db push            # runs the migrations in supabase/migrations
 ```
-Then in the Supabase dashboard:
-- **Database → Extensions → pg_cron**: enable it, then run in the SQL editor:
-  ```sql
-  select cron.schedule('release-expired-holds', '* * * * *', 'select public.release_expired_holds()');
-  ```
+Migration 0010 schedules the every-minute hold cleanup with pg_cron automatically. Then in the Supabase dashboard:
 - **Authentication → Providers → Phone**: enable, and for testing add test numbers with fixed OTPs (for example `919999900001` → `123456`). Real SMS in India needs DLT registration; start that early.
 
 ### 4. Seed the demo and start
@@ -92,26 +88,21 @@ The amount always comes from the database. The webhook is the source of truth an
 
 ## Put it online (Vercel + Supabase, free tiers)
 
-GitHub stores the code; it can't run it. GitHub Pages only serves static files, and this app needs a server (logins, payments, server actions) plus a database. So: **Supabase** runs the database, **Vercel** runs the website, and Vercel redeploys automatically every time you push to `main`.
+GitHub stores the code; it can't run it (GitHub Pages only serves static files, and this app needs a server and a database). **Supabase** runs the database and **Vercel** runs the website; Vercel redeploys by itself on every push to `main`.
 
-1. **Database**: do steps 1 and 3 of "Run it locally" (create the Supabase project, `npx supabase db push`, pg_cron), then `npm run seed` once so the demo has data.
-2. **Website**: [vercel.com/new](https://vercel.com/new) → sign in with GitHub → **Import** `real_estate_startup` → Framework: Next.js (auto-detected) → add these environment variables → **Deploy**:
+**The database is already live**: Supabase project `plotline` (Mumbai) has all 11 migrations, the demo data, the documents and the every-minute hold cleanup. The public connection settings for it are in `.env.production`, so the site needs only one secret.
 
-   | Name | Value |
-   | --- | --- |
-   | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API → Project URL |
-   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | the `anon` / publishable key |
-   | `SUPABASE_SERVICE_ROLE_KEY` | the `service_role` / secret key (server only, never in client code) |
-   | `PAYMENTS_MODE` | `simulated` for the demo, `razorpay` once you have keys |
-   | `NEXT_PUBLIC_SITE_URL` | your Vercel URL, e.g. `https://real-estate-startup.vercel.app` |
-   | `NEXT_PUBLIC_REALTIME` | `on` |
+1. **Deploy the website**: [vercel.com/new](https://vercel.com/new) → *Continue with GitHub* → **Import** `real_estate_startup` → **Deploy**. Nothing to fill in. In about two minutes you get a link like `https://real-estate-startup.vercel.app`.
+2. **Add the one secret** (needed for token payments, ID upload and linking portal logins): Supabase → Project Settings → **API Keys** → copy the **secret** key (or the legacy `service_role` key). In Vercel → your project → Settings → **Environment Variables** add `SUPABASE_SERVICE_ROLE_KEY` = that key → Deployments → ⋯ → **Redeploy**.
+3. **Tell Supabase the site's address**: Supabase → Authentication → **URL Configuration** → Site URL = your Vercel link (used in sign-up and password emails).
 
-3. **Tell Supabase about the URL**: Supabase → Authentication → URL configuration → set Site URL to the Vercel URL.
-4. Open the Vercel URL and sign in with any demo login above.
+Then sign in with any demo login above.
+
+**Using a different Supabase project** (your own copy, or a staging one): run the migrations there (`npx supabase link` + `npx supabase db push`, then `npm run seed`) and override `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` in Vercel's environment variables; those win over `.env.production`.
 
 **No Node on your laptop?** On the GitHub repo page: **Code → Codespaces → Create codespace on main**. It opens VS Code in the browser with Node ready, so you can run `npm install`, `npx supabase db push`, `npm run seed` and even `npm run dev` there; Codespaces gives you a preview link for port 3000.
 
-Before real buyers: switch payments to Razorpay, move Supabase to the **Pro** plan (free projects pause after a week of inactivity and have no daily backups), and add your own domain in Vercel → Settings → Domains.
+Before real buyers: switch payments to Razorpay, move Supabase to the **Pro** plan (free projects pause after a week of inactivity and have no daily backups), turn on leaked-password protection in Supabase Auth, and add your own domain in Vercel → Settings → Domains.
 
 ## Working on the code
 - `.env.local` is git-ignored, so keys stay on your machine. Put production keys only in Vercel's environment variables.
@@ -149,6 +140,8 @@ scripts/seed.mjs       demo data for any Supabase project
 | 0007 operations | contractors, work packages, materials, vendors, deliveries, material requests, **stock ledger**, employees, attendance (geofence), modification requests |
 | 0008 CRM | leads, lead activities, site visits, public enquiry function, auto-win on booking |
 | 0009 realtime | publishes the live tables |
+| 0010 hold cleanup | pg_cron job that frees expired 15-minute holds every minute (skipped where pg_cron isn't installed) |
+| 0011 hardening | trigger functions not callable over the API; fixed search_path (from the Supabase security advisor) |
 
 Run the SQL tests on any Postgres 15+:
 ```bash

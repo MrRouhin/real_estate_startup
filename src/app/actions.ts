@@ -3,7 +3,7 @@
 // row-level security and the database functions enforce the rules.
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { createAdminClient, createClient } from '@/lib/supabase/server';
+import { createAdminClient, createClient, hasServiceKey, SERVICE_KEY_MISSING } from '@/lib/supabase/server';
 import { fail, friendly, ok, str, type ActionResult } from '@/lib/actions';
 
 export async function holdPlot(formData: FormData) {
@@ -22,6 +22,7 @@ export async function markKycSubmitted(path: string): Promise<ActionResult> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return fail('Sign in first.');
   if (!path.startsWith(user.id + '/')) return fail('Upload the document to your own folder.');
+  if (!hasServiceKey()) return fail(SERVICE_KEY_MISSING);
   const admin = createAdminClient(); // profiles.kyc_status is not user-editable on purpose
   const { error } = await admin.from('profiles').update({ kyc_status: 'submitted' }).eq('id', user.id).in('kyc_status', ['not_started', 'rejected']);
   if (error) return fail(friendly(error));

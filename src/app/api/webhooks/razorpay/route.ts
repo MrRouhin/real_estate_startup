@@ -1,12 +1,13 @@
 // POST /api/webhooks/razorpay — Razorpay's server calls this; it is the source of truth for money.
 // Razorpay Dashboard → Webhooks: URL https://<your-domain>/api/webhooks/razorpay,
 // secret = RAZORPAY_WEBHOOK_SECRET, events: payment.captured, payment.failed.
-import { createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient, hasServiceKey, SERVICE_KEY_MISSING } from '@/lib/supabase/server';
 import { hmacMatches, toPaise } from '@/lib/payments';
 
 type Evt = { event: string; payload: { payment?: { entity: { id: string; order_id: string; amount: number } } } };
 
 export async function POST(req: Request) {
+  if (!hasServiceKey()) return Response.json({ error: SERVICE_KEY_MISSING }, { status: 503 });
   const raw = await req.text(); // signature covers the raw body
   if (!hmacMatches(raw, req.headers.get('x-razorpay-signature') || '', process.env.RAZORPAY_WEBHOOK_SECRET || '')) {
     return new Response('bad signature', { status: 400 });

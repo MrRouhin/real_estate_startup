@@ -2,12 +2,13 @@
 // Plays the part of Razorpay so the full booking flow can be demoed without a merchant account.
 import crypto from 'node:crypto';
 import { z } from 'zod';
-import { createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient, hasServiceKey, SERVICE_KEY_MISSING } from '@/lib/supabase/server';
 import { PAYMENTS_MODE, userClient } from '@/lib/payments';
 
 const Body = z.object({ orderId: z.string(), outcome: z.enum(['success', 'failure']), method: z.string().optional() });
 
 export async function POST(req: Request) {
+  if (!hasServiceKey()) return Response.json({ error: SERVICE_KEY_MISSING }, { status: 503 });
   if (PAYMENTS_MODE !== 'simulated') return Response.json({ error: 'Simulated payments are switched off.' }, { status: 403 });
   const db = await userClient(req);
   const { data: { user } } = await db.auth.getUser();

@@ -25,6 +25,10 @@ export async function createClient() {
   });
 }
 
+/** Shown when a server feature needs the secret key and the host has not been given it. */
+export const SERVICE_KEY_MISSING = 'This needs the server key: add SUPABASE_SERVICE_ROLE_KEY in the hosting settings (Vercel → Settings → Environment Variables) and redeploy.';
+export const hasServiceKey = () => !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+
 /** Bypasses row-level security. Server-only: payments, webhooks, admin lookups after an explicit permission check. */
 export function createAdminClient() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
