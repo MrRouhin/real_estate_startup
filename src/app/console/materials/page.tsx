@@ -9,6 +9,9 @@ import { ActionForm, SubmitButton } from '@/components/ui/action-form';
 import { LiveRefresh } from '@/components/live-refresh';
 import { createMaterial, recordOpening } from '../actions';
 import { RequestActions } from './request-actions';
+import { forecastStock, orderMessage } from '@/lib/ai/materials';
+import { AISource } from '@/components/ai/bits';
+import { OrderButton } from '@/components/ai/order-button';
 
 export const metadata = { title: 'Materials' };
 
@@ -17,12 +20,17 @@ const MOVE_TONE = { opening: 'muted', received: 'good', rejected: 'bad', issued:
 export default async function Materials() {
   const { supabase, orgId, project } = await requireStaff();
   const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
-  const [{ data: stock }, { data: reqs }, { data: moves }, { data: monthWaste }] = await Promise.all([
+  const since30 = new Date(Date.now() - 30 * 86400000).toISOString();
+  const [{ data: stock }, { data: reqs }, { data: moves }, { data: monthWaste }, { data: issued }, { data: vendors }, { data: org }] = await Promise.all([
     supabase.from('material_stock').select('*').eq('project_id', project!.id).order('name'),
     supabase.from('material_requests').select('*, materials(name, unit), contractors(company_name)').eq('org_id', orgId).in('status', ['requested', 'approved']).order('created_at'),
     supabase.from('stock_movements').select('*, materials(name, unit), contractors(company_name), vendors(company_name)').eq('project_id', project!.id).order('created_at', { ascending: false }).limit(40),
     supabase.from('stock_movements').select('quantity, materials(unit_cost)').eq('project_id', project!.id).eq('type', 'wastage').gte('created_at', monthStart.toISOString()),
+    supabase.from('stock_movements').select('material_id, type, quantity, created_at').eq('project_id', project!.id).eq('type', 'issued').gte('created_at', since30),
+    supabase.from('vendors').select('id, company_name, phone, categories, rating').eq('org_id', orgId),
+    supabase.from('organizations').select('name').eq('id', orgId).single(),
   ]);
+  const forecast = forecastStock(stock || [], issued || [], (reqs || []).map((r) => ({ material_id: r.material_id, quantity: r.quantity, status: r.status })), vendors || []);
   const items = (stock || []).map((m) => ({ id: m.material_id!, name: m.name!, unit: m.unit!, category: m.category!, in_store: Number(m.in_store), reorder_level: Number(m.reorder_level), at_site: Number(m.at_site), unit_cost: Number(m.unit_cost || 0), consumed: Number(m.consumed), wastage: Number(m.wastage), received: Number(m.received) }));
   const value = items.reduce((a, m) => a + m.in_store * m.unit_cost, 0);
   const low = items.filter((m) => m.in_store < m.reorder_level);
@@ -39,6 +47,31 @@ export default async function Materials() {
         <Item className="card p-4"><div className="eyebrow">Open requests</div><div className="num mt-1 text-[24px] font-medium"><AnimatedNumber value={(reqs || []).length} /></div></Item>
         <Item className="card p-4"><div className="eyebrow">Wasted this month</div><div className="num mt-1 text-[24px] font-medium">{inr(wasteVal)}</div></Item>
       </Stagger>
+
+      <Section title="Reorder forecast" action={<span className="flex items-center gap-2 text-[12px] text-ink-3"><AISource source="rules" />30-day issue rate · 7-day lead time</span>}>
+        <div className="scroll-x"><table className="table min-w-[760px]">
+          <thead><tr><th>Material</th><th className="r">In store</th><th className="r">Use / day</th><th>Lasts</th><th className="r">Suggested order</th><th>Vendor</th><th /></tr></thead>
+          <tbody>{forecast.map((f) => {
+            const days = f.status === 'short' ? 0 : f.daysLeft;
+            const color = f.status === 'short' ? 'var(--bad)' : f.status === 'reorder' ? 'var(--warn)' : 'var(--good)';
+            return (
+              <tr key={f.materialId}>
+                <td className="font-medium">{f.name}{f.openDemand > 0 && <div className="text-[11.5px] text-ink-3">{qty(f.openDemand)} {f.unit} requested</div>}</td>
+                <td className="r num">{qty(f.inStore)} {f.unit}</td>
+                <td className="r num text-ink-2">{f.dailyUse ? qty(f.dailyUse) : '—'}</td>
+                <td className="min-w-[150px]">
+                  <div className="flex items-center gap-2"><span className="h-1.5 w-20 overflow-hidden rounded-full bg-surface-2"><span className="block h-full rounded-full" style={{ width: `${Math.min(100, ((days ?? 60) / 60) * 100)}%`, background: color }} /></span>
+                    <span className="num text-[12.5px] font-semibold" style={{ color }}>{f.status === 'short' ? 'Short now' : days == null ? 'No recent use' : `${days} days`}</span></div>
+                  {f.runOutOn && f.status !== 'ok' && <div className="text-[11.5px] text-ink-3">runs out ≈ {date(f.runOutOn)}</div>}
+                </td>
+                <td className="r num">{f.orderQty ? <b>{qty(f.orderQty)} {f.unit}</b> : <span className="text-ink-3">—</span>}{f.orderValue > 0 && <div className="text-[11.5px] text-ink-3">≈ {lakh(f.orderValue)}</div>}</td>
+                <td className="text-ink-2">{f.vendor?.name || '—'}</td>
+                <td className="r">{f.orderQty > 0 && <OrderButton title={`Order ${f.name}`} phone={f.vendor?.phone ?? null} message={orderMessage(f, project!.name, org?.name || '')} />}</td>
+              </tr>
+            );
+          })}</tbody>
+        </table></div>
+      </Section>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
         <YardView items={items} height={380} />

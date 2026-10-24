@@ -16,6 +16,32 @@ Real estate platform MVP for plotted developments: buyers pick a plot on a live 
 | Vendor | `/portal` | Log deliveries (vehicle, invoice, photo), see inspection results |
 | Site employee | `/portal` | Selfie + GPS check-in checked against the site geofence, check-out, attendance history |
 
+### AI layer
+The database computes the numbers; the AI only explains them, and **people approve every change**. Everything works without an AI key (built-in rules write plainer text); add one for plain-language reports, photo and invoice reading, multilingual chat and personalised messages.
+
+| For | Feature | Where |
+| --- | --- | --- |
+| Developer | **Plan vs actual**: baseline plan per work package (planned % by date, BOQ quantity, material budget), S-curve chart, earned-schedule forecast finish, pace needed vs pace achieved | Contractor → *Plan vs actual* tab |
+| Developer | **Daily briefing + insights** with one-tap actions (mark delayed, create baseline, raise price, schedule follow-up, send order, share report). Dismissed items stay quiet for a week; every decision is logged | `/console/insights`, Overview |
+| Developer | **Weekly contractor reports**, shared to the contractor's portal with a notification | Insights, Contractor tab, Portal |
+| Developer | **Material intelligence**: use vs what the work done should need, run-out forecast, reorder quantity, drafted WhatsApp order to the best-rated vendor | Materials, Contractor tab |
+| Developer | **Photo checks**: EXIF time and place vs the site; with AI, does the photo show the claimed work, estimated % and visible safety issues | Construction |
+| Developer | **Crew vs output** and **suspicious check-ins** (repeated off-site, same GPS spot for many people, reused selfies) | Employees |
+| Developer | **Gate checks for deliveries**: duplicate invoice, rate above normal, unusual quantity, bad vehicle number, GSTIN format; with AI, the invoice photo is read and compared | Vendors |
+| Developer | **Lead scoring** with reasons, next best action, WhatsApp follow-up draft (English/Hindi/Kannada), call-note summary that sets the follow-up date | Leads |
+| Developer | **Demand-based price suggestions** from views, comparisons, matchmaker picks, enquiries and holds | Plots and prices |
+| Developer | **Ask your site**: chat over today's numbers | Floating button in the console |
+| Buyer | **Plot matchmaker** in English, Hindi or Kannada (voice in/out): picks are ranked from real plot data and highlighted on the 3D map | Plot explorer, *Find my plot with AI* |
+| Buyer | **Price outlook as a range** (cautious / middle / strong) with every assumption written out, plus a *Before you buy* checklist. No single number and no buy/don't-buy verdict (RERA rules on promised returns) | Plot page |
+| Buyer | **True cost and EMI**: stamp duty, cess, registration, legal; loan planner | Plot page |
+| Buyer | **Dream home preview**: describe a house, see it in 3D on the plot with setbacks, floor area and an indicative build cost | Plot page |
+| Buyer | **Near your plot**: the road, drain, lights, park and tank near *their* plot, with progress and plan status | My booking |
+| Buyer | **Ask the documents**: answers quote the FAQ and the buyer's own agreement | Project page, My booking |
+
+Turn on the AI: add `ANTHROPIC_API_KEY` in Vercel's environment variables (default model `claude-haiku-5-5`; change with `AI_MODEL`). Any OpenAI-compatible provider also works: set `AI_PROVIDER=openai`, `AI_API_KEY`, `AI_BASE_URL` and `AI_MODEL`. The daily analysis runs at 6:00 IST through Vercel Cron once you add a `CRON_SECRET`. Calls are rate-limited per visitor and logged in `ai_usage`.
+
+Code: `src/lib/ai/` (pure analytics + one model client with fallbacks), `src/components/ai/`, `src/app/api/ai/*`, migration `20261024000014_ai_layer.sql`.
+
 ### The 3D site
 `src/components/three/site-scene.tsx` (React Three Fiber). Every element is driven by milestone progress (0–100): the compound wall rises, asphalt spreads along the roads with a road roller working the front, drains extend, street lights pop up pole by pole, the overhead tank and clubhouse rise (with a tower crane while it's being built), and the park greens up with trees. Each construction update stores a snapshot, so the project page can **replay the whole build** with the Replay button. Plots are extruded from their outline and coloured by live status; held plots pulse. It pauses when off screen, falls back to the 2D map without WebGL, and fits any screen size.
 
@@ -102,6 +128,8 @@ Then sign in with any demo login above.
 
 **No Node on your laptop?** On the GitHub repo page: **Code → Codespaces → Create codespace on main**. It opens VS Code in the browser with Node ready, so you can run `npm install`, `npx supabase db push`, `npm run seed` and even `npm run dev` there; Codespaces gives you a preview link for port 3000.
 
+**AI (optional)**: add `ANTHROPIC_API_KEY` (and `CRON_SECRET`, any long random string, for the daily 6:00 IST analysis) in Vercel → Settings → Environment Variables, then redeploy. Without a key every AI feature still works with rule-based text.
+
 Before real buyers: switch payments to Razorpay, move Supabase to the **Pro** plan (free projects pause after a week of inactivity and have no daily backups), turn on leaked-password protection in Supabase Auth, and add your own domain in Vercel → Settings → Domains.
 
 ## Working on the code
@@ -149,7 +177,7 @@ Run the SQL tests on any Postgres 15+:
 createdb plotline_test
 psql -d plotline_test -f supabase/tests/local_supabase_stub.sql
 for f in supabase/migrations/*.sql; do psql -v ON_ERROR_STOP=1 -d plotline_test -f "$f"; done
-for t in booking_flow_test content_test operations_crm_test; do psql -d plotline_test -f supabase/tests/$t.sql; done
+for t in booking_flow_test content_test operations_crm_test ai_layer_test; do psql -d plotline_test -f supabase/tests/$t.sql; done
 ```
 Every check prints `t`.
 
@@ -157,4 +185,4 @@ Every check prints `t`.
 - **Mobile app**: wrap the buyer and portal flows in Expo. The API routes already accept `Authorization: Bearer` tokens.
 - **Layout upload**: parse a developer's SVG layout into plot outlines (the `shape_path` column is ready).
 - **Push notifications**: the `push_tokens` table and notification triggers are in place. Add a Supabase webhook on `notifications` that calls Expo Push.
-- **AI**: document Q&A for buyers (pgvector), invoice OCR for vendor deliveries, wastage anomaly alerts per contractor.
+- **AI, next steps**: semantic search with pgvector embeddings for long documents; real market data feeds (Kaveri guidance values, listing portals) behind the price outlook; WhatsApp Business API to send drafted messages directly; drone photo progress measurement.

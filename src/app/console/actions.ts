@@ -6,6 +6,12 @@ import { requireStaff } from '@/lib/auth';
 import { createAdminClient, hasServiceKey, SERVICE_KEY_MISSING } from '@/lib/supabase/server';
 import { fail, friendly, numOf, ok, str, type ActionResult } from '@/lib/actions';
 import type { LeadStage } from '@/lib/types';
+import type { Json } from '@/lib/database.types';
+import { checkInvoice, fileBytes, saveCheck } from '@/lib/ai/delivery-check';
+import { readExif, visionCheck, photoFlags } from '@/lib/ai/photo';
+import { indexPdf } from '@/lib/ai/docs';
+import { aiEnabled } from '@/lib/ai/client';
+import { logUsage } from '@/lib/ai/usage';
 
 const R = (p: string) => revalidatePath(p, 'layout');
 type A = (prev: ActionResult | null, fd: FormData) => Promise<ActionResult>;
@@ -173,20 +179,39 @@ export const postUpdate: A = async (_, fd) => {
   if (!project) return fail('No project selected.');
   const title = str(fd, 'title');
   if (!title) return fail('Give the update a title.');
-  const photo = fd.get('photo');
+  const photo = await fileBytes(fd.get('photo'));
   const paths: string[] = [];
-  if (photo instanceof File && photo.size > 0) {
-    const path = `${orgId}/${project.id}/updates/${Date.now()}-${photo.name.replace(/[^a-z0-9.]+/gi, '-')}`;
-    const { error } = await supabase.storage.from('project-media').upload(path, photo, { contentType: photo.type });
+  if (photo) {
+    const path = `${orgId}/${project.id}/updates/${Date.now()}-${photo.file.name.replace(/[^a-z0-9.]+/gi, '-')}`;
+    const { error } = await supabase.storage.from('project-media').upload(path, photo.file, { contentType: photo.mediaType });
     if (!error) paths.push(path);
   }
-  const { error } = await supabase.from('construction_updates').insert({
+  const milestoneId = str(fd, 'milestone_id'), claimed = numOf(fd, 'milestone_progress');
+  // check the photo: camera time and place (EXIF), and with an AI key, whether it shows the claimed work
+  let photo_check: Json | null = null, warn = '', insight: { severity: string; title: string; body: string; source: string } | null = null;
+  if (photo && /^image\//.test(photo.mediaType)) {
+    const { data: ms } = milestoneId ? await supabase.from('milestones').select('name').eq('id', milestoneId).single() : { data: null };
+    const exif = await readExif(photo.bytes, { lat: project.site_lat, lng: project.site_lng });
+    const v = aiEnabled() ? await visionCheck(photo.bytes, photo.mediaType, { title, milestone: ms?.name ?? null, progress: claimed }) : null;
+    if (v) await logUsage('photo_check', 'u:' + user.id, orgId, v.result);
+    const flags = photoFlags(exif, v?.vision ?? null, { progress: claimed }, new Date(), project.geofence_m);
+    photo_check = { checked_at: new Date().toISOString(), exif, vision: v?.vision ?? null, flags, source: v ? 'ai' : 'rules', claim: { milestone: ms?.name ?? null, progress: claimed } } as unknown as Json;
+    const bad = flags.filter((f) => f.severity !== 'info');
+    if (bad.length) {
+      warn = ` · photo check: ${bad[0]!.label.toLowerCase()}`;
+      insight = { severity: bad.some((f) => f.severity === 'critical') ? 'critical' : 'warn', title: `Photo check on "${title}": ${bad[0]!.label}`, body: bad.map((f) => `• ${f.label}: ${f.detail}`).join('\n'), source: v ? 'ai' : 'rules' };
+    }
+  }
+  const { data: upd, error } = await supabase.from('construction_updates').insert({
     org_id: orgId, project_id: project.id, title, body: str(fd, 'body'), created_by: user.id,
-    milestone_id: str(fd, 'milestone_id'), milestone_progress: numOf(fd, 'milestone_progress'), photo_paths: paths,
-  });
+    milestone_id: milestoneId, milestone_progress: claimed, photo_paths: paths,
+  }).select('id').single();
   if (error) return fail(friendly(error));
+  if (photo_check) await saveCheck(supabase, orgId, 'photo', upd.id, photo_check);
+  if (insight) await supabase.from('ai_insights').insert({ org_id: orgId, project_id: project.id, scope: 'project', subject_id: upd.id, kind: 'photo_check', severity: insight.severity, title: insight.title,
+    body: insight.body, source: insight.source, suggestion: { action: 'review', href: '/console/construction', label: 'Open the update' } as unknown as Json });
   R('/console/construction'); revalidatePath('/', 'layout');
-  return ok('Update posted — buyers notified');
+  return ok('Update posted — buyers notified' + warn);
 };
 
 export const postAnnouncement: A = async (_, fd) => {
@@ -291,16 +316,45 @@ export const createVendor: A = async (_, fd) => {
 };
 
 export const recordDelivery: A = async (_, fd) => {
-  const { supabase, orgId, project } = await requireStaff();
+  const { supabase, orgId, project, user } = await requireStaff();
   const qty = numOf(fd, 'quantity');
   if (!qty || qty <= 0) return fail('Enter the quantity delivered.');
-  const { error } = await supabase.from('deliveries').insert({
+  const inv = await fileBytes(fd.get('invoice'));
+  let invoicePath: string | null = null;
+  if (inv) {
+    const path = `${orgId}/invoices/${Date.now()}-${inv.file.name.replace(/[^a-z0-9.]+/gi, '-')}`;
+    const up = await supabase.storage.from('site').upload(path, inv.file, { contentType: inv.mediaType });
+    if (!up.error) invoicePath = path;
+  }
+  const { data, error } = await supabase.from('deliveries').insert({
     org_id: orgId, project_id: project!.id, vendor_id: str(fd, 'vendor_id')!, material_id: str(fd, 'material_id')!, quantity: qty,
     unit_cost: numOf(fd, 'unit_cost'), vehicle_number: str(fd, 'vehicle_number'), invoice_number: str(fd, 'invoice_number'), location: str(fd, 'location'),
-  });
+    invoice_path: invoicePath,
+  }).select('id').single();
   if (error) return fail(friendly(error));
+  let note = '';
+  if (inv) {
+    const c = await checkInvoice(supabase, data.id, inv, 'u:' + user.id);
+    if (c?.source === 'ai') note = c.flags.length ? ` · invoice check: ${c.flags.length} issue${c.flags.length > 1 ? 's' : ''}` : ' · invoice matches';
+  }
   R('/console/vendors');
-  return ok('Delivery logged — waiting for inspection');
+  return ok('Delivery logged — waiting for inspection' + note);
+};
+
+export const attachInvoice: A = async (_, fd) => {
+  const { supabase, orgId, user } = await requireStaff();
+  const id = str(fd, 'id')!;
+  const inv = await fileBytes(fd.get('invoice'));
+  if (!inv) return fail('Choose a photo of the invoice.');
+  if (!/^image\//.test(inv.mediaType)) return fail('Use a photo (JPG or PNG) of the invoice.');
+  const path = `${orgId}/invoices/${Date.now()}-${inv.file.name.replace(/[^a-z0-9.]+/gi, '-')}`;
+  const up = await supabase.storage.from('site').upload(path, inv.file, { contentType: inv.mediaType });
+  if (!up.error) await supabase.from('deliveries').update({ invoice_path: path }).eq('id', id);
+  const c = await checkInvoice(supabase, id, inv, 'u:' + user.id);
+  R('/console/vendors');
+  if (!c) return fail('Delivery not found.');
+  if (c.source !== 'ai') return ok(c.note || 'Photo saved');
+  return ok(c.flags.length ? `Invoice read: ${c.flags.length} issue${c.flags.length > 1 ? 's' : ''} found` : 'Invoice read: it matches what was entered');
 };
 
 export const inspectDelivery: A = async (_, fd) => {
@@ -352,11 +406,14 @@ export const uploadDocument: A = async (_, fd) => {
   const path = `${orgId}/${project!.id}/${Date.now()}-${file.name.replace(/[^a-z0-9.]+/gi, '-').toLowerCase()}`;
   const up = await supabase.storage.from('documents').upload(path, file, { contentType: file.type || 'application/pdf' });
   if (up.error) return fail(up.error.message);
-  const { error } = await supabase.from('documents').insert({
+  const { data: doc, error } = await supabase.from('documents').insert({
     org_id: orgId, project_id: project!.id, booking_id: bookingId, title: str(fd, 'title') || file.name, category: str(fd, 'category') || 'general',
     storage_path: path, visibility: bookingId ? 'buyer' : ((str(fd, 'visibility') || 'public') as 'public'), uploaded_by: user.id,
-  });
+  }).select('id, org_id, project_id, booking_id, visibility, title').single();
   if (error) return fail(friendly(error));
+  // make the text searchable for the buyers' document Q&A (internal files are never indexed)
+  let indexed = 0;
+  if ((file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) && doc.visibility !== 'internal') indexed = await indexPdf(supabase, doc, new Uint8Array(await file.arrayBuffer()));
   R('/console/documents');
-  return ok(bookingId ? 'Shared with the buyer' : 'Document published');
+  return ok((bookingId ? 'Shared with the buyer' : 'Document published') + (indexed ? ` · ${indexed} passages searchable in Ask the documents` : ''));
 };

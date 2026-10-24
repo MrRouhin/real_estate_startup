@@ -13,13 +13,17 @@ import { UsageBars } from '@/components/console/usage-bars';
 import { RequestActions } from '../../materials/request-actions';
 import { createWorkPackage, linkLogin, recordUsage, updateProgress } from '../../actions';
 import type { ContractorUsage } from '@/lib/types';
+import { materialVsPlan, rollup, STATE_LABEL, wpHealth } from '@/lib/ai/plan';
+import { AISource, CurveLegend, SCurve, STATE_COLOR } from '@/components/ai/bits';
+import { BudgetEditor, PlanEditor } from '@/components/ai/plan-editor';
+import { InsightCard, type InsightView } from '@/components/ai/insight-card';
 
 export default async function ContractorPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { supabase, project } = await requireStaff();
   const { data: c } = await supabase.from('contractors').select('*').eq('id', id).maybeSingle();
   if (!c) notFound();
-  const [{ data: wps }, { data: usage }, { data: reqs }, { data: crew }, { data: att }, { data: milestones }, { data: stock }, { data: moves }] = await Promise.all([
+  const [{ data: wps }, { data: usage }, { data: reqs }, { data: crew }, { data: att }, { data: milestones }, { data: stock }, { data: moves }, { data: allMaterials }, { data: insights }] = await Promise.all([
     supabase.from('work_packages').select('*').eq('contractor_id', id).order('due_date'),
     supabase.from('contractor_material_usage').select('*').eq('contractor_id', id),
     supabase.from('material_requests').select('*, materials(name, unit)').eq('contractor_id', id).order('created_at', { ascending: false }).limit(20),
@@ -28,7 +32,21 @@ export default async function ContractorPage({ params }: { params: Promise<{ id:
     supabase.from('milestones').select('id, key, name').eq('project_id', project!.id),
     supabase.from('material_stock').select('material_id, in_store').eq('project_id', project!.id),
     supabase.from('stock_movements').select('id, type, quantity, created_at, note, materials(name, unit)').eq('contractor_id', id).order('created_at', { ascending: false }).limit(25),
+    supabase.from('materials').select('id, name, unit').eq('org_id', c.org_id).order('name'),
+    supabase.from('ai_insights').select('*').eq('scope', 'contractor').eq('subject_id', id).eq('status', 'open').order('created_at', { ascending: false }),
   ]);
+  const wpIds = (wps || []).map((w) => w.id);
+  const [{ data: points }, { data: plog }, { data: budgets }] = wpIds.length ? await Promise.all([
+    supabase.from('wp_plan_points').select('work_package_id, planned_date, planned_pct').in('work_package_id', wpIds).order('planned_date'),
+    supabase.from('wp_progress_log').select('work_package_id, progress, logged_at').in('work_package_id', wpIds).order('logged_at'),
+    supabase.from('wp_material_budget').select('work_package_id, material_id, planned_qty').in('work_package_id', wpIds),
+  ]) : [{ data: [] }, { data: [] }, { data: [] }];
+  const today = todayIST();
+  const health = (wps || []).map((w) => wpHealth(w, (points || []).filter((p) => p.work_package_id === w.id), (plog || []).filter((l) => l.work_package_id === w.id), today));
+  const roll = rollup(health);
+  const mvp = materialVsPlan(health, budgets || [], (usage || []) as never);
+  const report = (insights || []).find((i) => i.kind === 'weekly_report') as unknown as InsightView | undefined;
+  const otherInsights = (insights || []).filter((i) => i.kind !== 'weekly_report') as unknown as InsightView[];
   const u = (usage || []) as ContractorUsage[];
   const s = contractorSummary(wps || [], u);
   const inStore = Object.fromEntries((stock || []).map((x) => [x.material_id, Number(x.in_store)]));
@@ -74,6 +92,67 @@ export default async function ContractorPage({ params }: { params: Promise<{ id:
           <SubmitButton className="btn btn-primary sm:col-span-2">Add work package</SubmitButton>
         </ActionForm>
       </details>
+    </div>
+  );
+
+
+  const plan = (
+    <div className="grid gap-5">
+      <div className="grid gap-3 sm:grid-cols-4">
+        {[['Done', `${Math.round(roll.actual)}%`, ''], ['Planned by today', `${Math.round(roll.planned)}%`, ''], ['Schedule index', roll.spi != null ? roll.spi.toFixed(2) : '—', roll.spi != null && roll.spi < 0.9 ? 'text-bad' : 'text-good'], ['Status', STATE_LABEL[roll.state], '']].map(([l, v, cl]) => (
+          <div key={l} className="card px-4 py-3"><div className="eyebrow">{l}</div><div className={'num text-[19px] font-semibold ' + cl} style={l === 'Status' ? { color: STATE_COLOR[roll.state] } : undefined}>{v}</div></div>
+        ))}
+      </div>
+      {report && <InsightCard i={report} compact />}
+      {otherInsights.map((i) => <InsightCard key={i.id} i={i} compact />)}
+      {health.map((h) => {
+        const w = (wps || []).find((x) => x.id === h.id)!;
+        const pts = (points || []).filter((p) => p.work_package_id === w.id).map((p) => ({ planned_date: p.planned_date, planned_pct: Number(p.planned_pct) }));
+        const b = (budgets || []).filter((x) => x.work_package_id === w.id).map((x) => ({ material_id: x.material_id, planned_qty: Number(x.planned_qty) }));
+        const need = h.due && h.state !== 'done' ? Math.max(0, (100 - h.actual) / Math.max(1, (new Date(h.due).getTime() - new Date(today).getTime()) / 86400000)) * 7 : null;
+        return (
+          <div key={h.id} className="card grid gap-4 p-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+            <div className="grid content-start gap-3">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div><div className="font-semibold">{h.title}</div><div className="text-[12.5px] text-ink-3">{date(w.start_date)} → {date(w.due_date)}{!pts.length && ' · default S-curve (no baseline)'}</div></div>
+                <span className="rounded-full px-2.5 py-0.5 text-[12px] font-bold" style={{ color: STATE_COLOR[h.state], background: `color-mix(in srgb, ${STATE_COLOR[h.state]} 13%, transparent)` }}>{STATE_LABEL[h.state]}</span>
+              </div>
+              <SCurve planned={h.curve.planned} actual={h.curve.actual} today={today} forecast={h.forecast} due={h.due} />
+              <CurveLegend />
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[13px] sm:grid-cols-4">
+                <div><dt className="text-ink-3">Actual / plan</dt><dd className="num font-semibold">{Math.round(h.actual)}% / {Math.round(h.planned)}%</dd></div>
+                <div><dt className="text-ink-3">Pace</dt><dd className="num font-semibold">{(h.velocity * 7).toFixed(1)} pts/week</dd></div>
+                <div><dt className="text-ink-3">Needed</dt><dd className="num font-semibold">{need != null ? `${need.toFixed(1)} pts/week` : '—'}</dd></div>
+                <div><dt className="text-ink-3">Forecast finish</dt><dd className={'num font-semibold ' + ((h.daysLate ?? 0) > 7 ? 'text-bad' : '')}>{h.state === 'done' ? 'Done' : h.forecast ? date(h.forecast) : 'stalled'}</dd></div>
+                {h.plannedQty != null && <div className="col-span-2"><dt className="text-ink-3">Quantity done</dt><dd className="num font-semibold">{(h.doneQty ?? 0).toLocaleString('en-IN')} of {h.plannedQty.toLocaleString('en-IN')} {h.qtyUnit}</dd></div>}
+              </dl>
+            </div>
+            <div className="grid content-start gap-4">
+              <details className="rounded-2xl border border-line p-3" open={!pts.length && h.state !== 'done'}>
+                <summary className="cursor-pointer text-[13.5px] font-semibold">Baseline plan {pts.length ? `(${pts.length} points)` : ''}</summary>
+                <div className="mt-3"><PlanEditor wpId={w.id} points={pts} plannedQty={w.planned_qty != null ? Number(w.planned_qty) : null} qtyUnit={w.qty_unit} /></div>
+              </details>
+              <details className="rounded-2xl border border-line p-3">
+                <summary className="cursor-pointer text-[13.5px] font-semibold">Material budget {b.length ? `(${b.length})` : ''}</summary>
+                <div className="mt-3"><BudgetEditor wpId={w.id} materials={allMaterials || []} budgets={b} /></div>
+              </details>
+            </div>
+          </div>
+        );
+      })}
+      {mvp.length > 0 && (
+        <Section title="Material used vs what the work done needs" action={<AISource source="rules" />}>
+          <div className="scroll-x"><table className="table min-w-[560px]">
+            <thead><tr><th>Material</th><th className="r">Used</th><th className="r">Plan for work done</th><th className="r">Difference</th><th className="r">Extra cost</th></tr></thead>
+            <tbody>{mvp.map((m) => (
+              <tr key={m.materialId}><td>{m.name}</td><td className="r num">{qty(m.used)} {m.unit}</td><td className="r num">{qty(m.expected)} {m.unit}</td>
+                <td className={'r num font-semibold ' + (m.overrunPct > 8 ? 'text-bad' : m.overrunPct < -8 ? 'text-warn' : 'text-good')}>{m.overrunPct > 0 ? '+' : ''}{m.overrunPct}%</td>
+                <td className="r num">{m.extraCost ? inr(m.extraCost) : '—'}</td></tr>
+            ))}</tbody>
+          </table></div>
+          <p className="mt-2 text-[12px] text-ink-3">Plan for work done = material budget × progress. Using much less than planned can also mean progress was over-reported.</p>
+        </Section>
+      )}
     </div>
   );
 
@@ -178,6 +257,7 @@ export default async function ContractorPage({ params }: { params: Promise<{ id:
         </div>
       )}
       <Tabs tabs={[
+        { id: 'plan', label: <span className="inline-flex items-center gap-1.5">Plan vs actual <i className="size-2 rounded-full" style={{ background: STATE_COLOR[roll.state] }} /></span>, content: plan },
         { id: 'work', label: `Work packages (${(wps || []).length})`, content: work },
         { id: 'materials', label: 'Materials', content: materials },
         { id: 'requests', label: `Requests (${(reqs || []).filter((r) => r.status !== 'issued' && r.status !== 'rejected').length} open)`, content: requests },

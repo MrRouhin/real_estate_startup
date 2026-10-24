@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Box, FileText, MapPin, Megaphone, ShieldCheck } from 'lucide-react';
+import { Box, FileText, MapPin, Megaphone, ShieldCheck, Sparkles } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { getSession } from '@/lib/auth';
 import { loadProjectBySlug } from '@/lib/queries';
@@ -12,6 +12,7 @@ import { EnquiryButton } from '@/components/buyer/enquiry';
 import { LiveRefresh } from '@/components/live-refresh';
 import { Item, ProgressRing, Stagger } from '@/components/ui/motion';
 import { Empty } from '@/components/ui/bits';
+import { DocsAskButton } from '@/components/ai/docs-ask';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -70,6 +71,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           </Item>
           <Item className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
             {plots.length > 0 && <Link href={`/projects/${project.slug}/plots`} className="btn btn-primary btn-lg"><Box className="size-4" />Explore plots in 3D</Link>}
+            {plots.length > 0 && <Link href={`/projects/${project.slug}/plots?ai=1`} className="btn btn-outline btn-lg"><Sparkles className="size-4" />Find my plot with AI</Link>}
             <EnquiryButton projectId={project.id} className="btn btn-outline btn-lg" defaults={{ name: profile?.full_name, phone: profile?.phone, email: profile?.email }} />
           </Item>
         </Stagger>
@@ -115,7 +117,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         </section>
         <div className="grid content-start gap-6">
           <section className="card p-5">
-            <h2 className="mb-2 flex items-center gap-2 text-[17px] font-bold"><FileText className="size-5 text-accent" />Documents</h2>
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><h2 className="flex items-center gap-2 text-[17px] font-bold"><FileText className="size-5 text-accent" />Documents</h2><DocsAskButton projectId={project.id} /></div>
             {signed.length === 0 ? <p className="text-[13.5px] text-ink-2">No documents uploaded yet.</p> : (
               <ul className="divide-y divide-line">
                 {signed.map((doc) => (

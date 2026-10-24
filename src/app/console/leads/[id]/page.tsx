@@ -7,6 +7,11 @@ import { Avatar, Pill, Section } from '@/components/ui/bits';
 import { ActionForm, SubmitButton } from '@/components/ui/action-form';
 import { logLeadActivity, scheduleVisit, updateLead, updateVisit } from '../../actions';
 import { StageStepper } from './stepper';
+import { scoreLead } from '@/lib/ai/leads';
+import { parseRequirements, rankPlots } from '@/lib/ai/match';
+import { asLayout } from '@/lib/site';
+import { LeadAssist } from '@/components/ai/lead-assist';
+import { AISource } from '@/components/ai/bits';
 
 const ICON = { note: StickyNote, call: PhoneCall, whatsapp: MessageCircle, email: Mail, site_visit: CalendarCheck, stage_change: ArrowLeft, enquiry: MessageCircle, system: StickyNote };
 
@@ -19,8 +24,12 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
     supabase.from('lead_activities').select('*').eq('lead_id', id).order('created_at', { ascending: false }),
     supabase.from('site_visits').select('*').eq('lead_id', id).order('scheduled_at', { ascending: false }),
     supabase.from('organization_members').select('user_id, profiles(full_name)').eq('org_id', orgId),
-    supabase.from('plots').select('id, plot_number, status, price').eq('project_id', project!.id).order('plot_number'),
+    supabase.from('plots').select('id, plot_number, status, price, area_sqft, facing, is_corner, held_until, shape_path, dimensions').eq('project_id', project!.id).order('plot_number'),
   ]);
+  const sc = scoreLead(lead, acts || [], visits || [], plots || []);
+  const req = parseRequirements([lead.message, lead.preferred_facing?.replace('_', ' '), lead.preferred_size ? `${lead.preferred_size} sq ft` : '', ...(acts || []).filter((a) => a.type !== 'system' && a.type !== 'stage_change').slice(0, 6).map((a) => a.body)].filter(Boolean).join('. '),
+    { budgetMin: lead.budget_min, budgetMax: lead.budget_max });
+  const fits = rankPlots(plots || [], asLayout(project!.layout), req).filter((r) => r.fits).slice(0, 3);
   const people = (staff || []).map((m) => ({ id: m.user_id, name: (m.profiles as unknown as { full_name: string } | null)?.full_name || 'Staff' }));
   const interested = plots?.find((p) => p.id === lead.interested_plot_id);
   const localDT = (iso: string | null) => (iso ? new Date(new Date(iso).getTime() + 5.5 * 3600000).toISOString().slice(0, 16) : '');
@@ -69,6 +78,28 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
         </Section>
 
         <div className="grid content-start gap-6">
+          <Section title="AI sales assistant" action={<AISource source="rules" />}>
+            {sc.band !== 'closed' && (
+              <div className="mb-4 grid gap-3">
+                <div className="flex items-center gap-3">
+                  <span className={'grid size-14 shrink-0 place-items-center rounded-2xl text-[20px] font-bold ' + (sc.band === 'hot' ? 'bg-[color-mix(in_srgb,var(--bad)_13%,transparent)] text-bad' : sc.band === 'warm' ? 'bg-[color-mix(in_srgb,var(--warn)_13%,transparent)] text-warn' : 'bg-surface-2 text-ink-3')}><span className="num">{sc.score}</span></span>
+                  <div><div className="text-[12px] font-bold uppercase tracking-wide text-ink-3">{sc.band} lead · next best action</div>
+                    <div className="font-semibold">{sc.action.label}</div><div className="text-[12.5px] text-ink-2">{sc.action.detail}</div></div>
+                </div>
+                <details className="text-[12.5px]"><summary className="cursor-pointer text-ink-3">Why this score</summary>
+                  <ul className="mt-1.5 grid gap-0.5">{sc.points.map((p, i) => <li key={i} className="flex justify-between gap-2"><span className="text-ink-2">{p.label}</span><span className={'num font-semibold ' + (p.pts >= 0 ? 'text-good' : 'text-bad')}>{p.pts > 0 ? '+' : ''}{p.pts}</span></li>)}</ul>
+                </details>
+                {fits.length > 0 && (
+                  <div><div className="mb-1 text-[12px] font-semibold text-ink-3">Plots that fit what they asked for</div>
+                    <ul className="grid gap-1.5">{fits.map((f) => (
+                      <li key={f.plot.id} className="flex items-start justify-between gap-2 rounded-xl border border-line p-2 text-[12.5px]">
+                        <span><b>{f.plot.plot_number}</b> · {f.reasons.slice(0, 3).join(', ')}</span><span className="num shrink-0 font-semibold">{lakh(f.plot.price)}</span></li>
+                    ))}</ul></div>
+                )}
+              </div>
+            )}
+            <LeadAssist leadId={lead.id} />
+          </Section>
           <Section title="Site visits">
             <ul className="mb-3 grid gap-2">
               {(visits || []).map((v) => (

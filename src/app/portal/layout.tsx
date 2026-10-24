@@ -4,6 +4,9 @@ import { requireUser, homeFor } from '@/lib/auth';
 import { Logo } from '@/components/logo';
 import { Avatar } from '@/components/ui/bits';
 
+// AI checks (photo, invoice, reports) can take a few seconds; allow server actions up to a minute.
+export const maxDuration = 60;
+
 export const metadata = { title: 'Site portal' };
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {

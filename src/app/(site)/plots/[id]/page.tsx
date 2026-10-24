@@ -16,6 +16,12 @@ import { CompareBar, CompareToggle } from '@/components/buyer/compare-toggle';
 import { SubmitButton } from '@/components/ui/action-form';
 import { LiveRefresh } from '@/components/live-refresh';
 import { holdPlot } from '@/app/actions';
+import { priceOutlook, propertyChecklist } from '@/lib/ai/outlook';
+import type { ProjectSummary } from '@/lib/ai/nearby';
+import { Checklist, OutlookFan, OutlookTable } from '@/components/ai/outlook';
+import { CostPlanner } from '@/components/ai/cost-planner';
+import { DreamHome } from '@/components/ai/dream-home';
+import { TrackView } from '@/components/ai/track-view';
 
 export default async function PlotPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string }> }) {
   const { id } = await params;
@@ -29,7 +35,23 @@ export default async function PlotPage({ params, searchParams }: { params: Promi
     loadSite(supabase, plot.project_id),
     getSession(),
   ]);
-  const { data: org } = await supabase.from('organizations').select('name, phone, gst_number, token_percent').eq('id', plot.org_id).single();
+  const [{ data: org }, { data: factors }, { data: docs }, { data: stats }, doneRes] = await Promise.all([
+    supabase.from('organizations').select('name, phone, gst_number, token_percent, is_verified').eq('id', plot.org_id).single(),
+    supabase.from('market_factors').select('label, kind, status, impact_pct, expected_year, source').eq('project_id', plot.project_id).order('sort_order'),
+    supabase.from('documents').select('category').eq('project_id', plot.project_id).eq('visibility', 'public'),
+    supabase.from('project_stats').select('total_plots, booked, sold').eq('project_id', plot.project_id).maybeSingle(),
+    supabase.from('projects').select('id', { count: 'exact', head: true }).eq('org_id', plot.org_id).eq('status', 'completed'),
+  ]);
+  const outlook = priceOutlook(Number(plot.price), history || [], factors || []);
+  const sum = project!.ai_summary as unknown as ProjectSummary | null;
+  const availRates = site.plots.filter((p) => liveStatus(p) === 'available').map((p) => rate(p));
+  const checklist = propertyChecklist({
+    rera: project!.rera_number, approvals: (docs || []).filter((d) => d.category === 'approval' || d.category === 'rera').length,
+    legal: (docs || []).filter((d) => d.category === 'legal').length, health: sum ? { planned: sum.planned, actual: sum.actual, state: sum.state, forecast: sum.forecast } : null,
+    soldShare: stats ? (Number(stats.booked) + Number(stats.sold)) / Math.max(1, Number(stats.total_plots)) : 0,
+    completedProjects: doneRes.count ?? 0, verifiedDeveloper: !!org?.is_verified,
+    plotRate: rate(plot), avgRate: availRates.length ? availRates.reduce((a, b) => a + b, 0) / availRates.length : rate(plot),
+  });
   const status = liveStatus(plot);
   const first = Number(history?.[0]?.price ?? plot.price);
   const gain = Math.round((Number(plot.price) / first - 1) * 100);
@@ -100,6 +122,39 @@ export default async function PlotPage({ params, searchParams }: { params: Promi
           </div>
         </section>
       </div>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]">
+        <section className="card grid content-start gap-3 p-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-2"><h2 className="text-[18px] font-bold">Price outlook: a range, not a promise</h2>
+            <span className="text-[12px] text-ink-3">Scenarios from stated assumptions</span></div>
+          <OutlookFan price={Number(plot.price)} o={outlook} />
+          <div className="scroll-x"><OutlookTable o={outlook} /></div>
+          <details className="text-[13px]"><summary className="cursor-pointer font-semibold">How this is worked out</summary>
+            <ul className="mt-2 grid gap-1.5 text-ink-2">{outlook.assumptions.map((a, i) => <li key={i}>• {a}</li>)}</ul>
+            {outlook.factors.length > 0 && <ul className="mt-2 grid gap-1 text-[12.5px]">{outlook.factors.map((f) => (
+              <li key={f.label} className="flex justify-between gap-2"><span>{f.label} <span className="text-ink-3">· {f.status.replace('_', ' ')}{f.expected_year ? `, ${f.expected_year}` : ''}{f.source ? ` · ${f.source}` : ''}</span></span>
+                <span className="num whitespace-nowrap text-ink-3">{f.contribution > 0 ? `+${(f.contribution * 100).toFixed(1)}%/yr × ${f.years} yr` : 'priced in'}</span></li>
+            ))}</ul>}
+          </details>
+          <p className="text-[12px] text-ink-3">This is not investment advice and not a valuation. Land prices can fall as well as rise, and resale takes time and costs money. Talk to a financial adviser before buying for investment.</p>
+        </section>
+        <section className="card grid content-start gap-3 p-5">
+          <h2 className="text-[18px] font-bold">Before you buy</h2>
+          <p className="text-[13px] text-ink-2">A checklist from the project’s records. It does not tell you whether to buy; it shows what to verify.</p>
+          <Checklist items={checklist} />
+        </section>
+      </div>
+
+      <section className="card p-5">
+        <h2 className="mb-3 text-[18px] font-bold">True cost and EMI</h2>
+        <CostPlanner price={Number(plot.price)} />
+      </section>
+
+      <section className="card p-5">
+        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2"><h2 className="text-[18px] font-bold">Your dream home on {plot.plot_number}</h2>
+          <span className="text-[12px] text-ink-3">Describe it in your words, or tap the options</span></div>
+        <DreamHome plotId={plot.id} facing={plot.facing} />
+      </section>
+      <TrackView plotId={plot.id} />
       <CompareBar />
     </div>
   );

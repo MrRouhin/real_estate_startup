@@ -28,7 +28,7 @@ export function UpdateForm({ milestones }: { milestones: { id: string; key: stri
       <div><label className="label" htmlFor="ub">Details for buyers</label><textarea id="ub" name="body" rows={3} className="input" placeholder="What changed on site this week" /></div>
       <label className="btn btn-outline w-fit cursor-pointer"><ImagePlus className="size-4" />Add a site photo<input type="file" name="photo" accept="image/*" className="sr-only" /></label>
       <SubmitButton pendingText="Posting…">Post update and notify buyers</SubmitButton>
-      <p className="text-[12px] text-ink-3">The 3D view animates to the new state as soon as it’s posted.</p>
+      <p className="text-[12px] text-ink-3">The 3D view animates to the new state as soon as it’s posted. Photos are checked for when and where they were taken; with an AI key, also whether they show the claimed work and any safety issues.</p>
     </ActionForm>
   );
 }

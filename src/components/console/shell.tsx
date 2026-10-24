@@ -2,12 +2,13 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Boxes, Building2, ExternalLink, FileText, Gauge, HardHat, KanbanSquare, Map, Package, Truck, Users, Wallet, Wrench } from 'lucide-react';
+import { Boxes, Building2, ExternalLink, FileText, Gauge, HardHat, KanbanSquare, Map, Package, Sparkles, Truck, Users, Wallet, Wrench } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import { Avatar } from '@/components/ui/bits';
+import { AskSite } from '@/components/ai/ask-site';
 
 const NAV = [
-  { group: null, items: [{ href: '/console', label: 'Overview', icon: Gauge }] },
+  { group: null, items: [{ href: '/console', label: 'Overview', icon: Gauge }, { href: '/console/insights', label: 'AI insights', icon: Sparkles }] },
   { group: 'Sales', items: [
     { href: '/console/leads', label: 'Leads (CRM)', icon: KanbanSquare },
     { href: '/console/plots', label: 'Plots and prices', icon: Map },
@@ -76,6 +77,7 @@ export function ConsoleShell({ children, org, project, user, badges }: {
           className="mx-auto grid max-w-[1400px] gap-6 px-4 py-6 sm:px-6 lg:px-8">
           {children}
         </motion.main>
+        <AskSite />
       </div>
     </div>
   );

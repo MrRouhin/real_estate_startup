@@ -559,6 +559,12 @@ const FEED = [
 ];
 await must(db.from('activity_log').insert(FEED.map(([d, kind, message]) => ({ org_id: org.id, project_id: project.id, kind, message, created_at: iso(now - d * DAY) }))), 'feed');
 
+step('Preparing AI demo data (baseline plans, budgets, progress history, demand signals, FAQ)');
+{
+  const ai = await db.rpc('seed_ai_demo', { p_org: org.id });
+  if (ai.error) console.warn('  (AI demo data skipped: ' + ai.error.message + ')');
+}
+
 const { data: pr } = await db.from('projects').select('progress_percent').eq('id', project.id).single();
 console.log(`\n✓ Seeded "${ORG_NAME}" — project progress ${pr.progress_percent}%\n`);
 console.log('Demo logins (password ' + PASSWORD + '):');

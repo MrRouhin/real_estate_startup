@@ -7,13 +7,17 @@ import { Pill, Section } from '@/components/ui/bits';
 import { Bars } from '@/components/charts/bars';
 import { ActionForm, SubmitButton } from '@/components/ui/action-form';
 import { linkLogin } from '../../actions';
+import { deliveryChecks } from '@/lib/ai/invoice';
 
 export default async function VendorPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { supabase } = await requireStaff();
   const { data: v } = await supabase.from('vendors').select('*').eq('id', id).maybeSingle();
   if (!v) notFound();
-  const { data: dels } = await supabase.from('deliveries').select('*, materials(name, unit)').eq('vendor_id', id).order('delivered_at', { ascending: false });
+  const [{ data: dels }, { data: mats }] = await Promise.all([
+    supabase.from('deliveries').select('*, materials(name, unit)').eq('vendor_id', id).order('delivered_at', { ascending: false }),
+    supabase.from('materials').select('id, name, unit, unit_cost').eq('org_id', v.org_id),
+  ]);
   const months: { key: string; label: string; value: number }[] = [];
   for (let i = 5; i >= 0; i--) { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - i); months.push({ key: `${d.getFullYear()}-${d.getMonth()}`, label: d.toLocaleDateString('en-IN', { month: 'short' }), value: 0 }); }
   (dels || []).forEach((d) => { const t = new Date(d.delivered_at); const m = months.find((x) => x.key === `${t.getFullYear()}-${t.getMonth()}`); if (m) m.value += Number(d.accepted_qty ?? 0) * Number(d.unit_cost || 0); });
@@ -33,7 +37,8 @@ export default async function VendorPage({ params }: { params: Promise<{ id: str
             <table className="table min-w-[640px]">
               <thead><tr><th>When</th><th>Material</th><th className="r">Delivered</th><th className="r">Accepted</th><th className="r">Value</th><th>Status</th></tr></thead>
               <tbody>{(dels || []).map((d) => { const m = d.materials as unknown as { name: string; unit: string }; return (
-                <tr key={d.id}><td className="text-ink-2">{dateTime(d.delivered_at)}<div className="num text-[11px] text-ink-3">{d.invoice_number} · {d.vehicle_number}</div></td>
+                <tr key={d.id}><td className="text-ink-2">{dateTime(d.delivered_at)}<div className="num text-[11px] text-ink-3">{d.invoice_number} · {d.vehicle_number}</div>
+                  {deliveryChecks(d, dels || [], (mats || []).find((x) => x.id === d.material_id) || null, v).flags.filter((f) => f.severity !== 'info').map((f) => <div key={f.id} className={'text-[11px] font-semibold ' + (f.severity === 'critical' ? 'text-bad' : 'text-warn')}>⚠ {f.label}</div>)}</td>
                   <td>{m.name}</td><td className="r num">{qty(d.quantity)} {m.unit}</td><td className="r num">{d.accepted_qty != null ? qty(d.accepted_qty) : '—'}</td>
                   <td className="r num">{d.accepted_qty != null ? inr(Number(d.accepted_qty) * Number(d.unit_cost || 0)) : '—'}</td><td><Pill status={d.status} /></td></tr>
               ); })}</tbody>

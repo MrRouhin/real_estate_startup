@@ -12,6 +12,11 @@ import { ActionForm, SubmitButton } from '@/components/ui/action-form';
 import { LiveRefresh } from '@/components/live-refresh';
 import { requestModification, respondToQuote } from '@/app/actions';
 import { PayInstallment } from './pay-installment';
+import { nearPlot, type ProjectSummary } from '@/lib/ai/nearby';
+import { DocsChat } from '@/components/ai/docs-ask';
+import { STATE_COLOR } from '@/components/ai/bits';
+import { ProgressBar } from '@/components/ui/motion';
+import { MapPinned, MessagesSquare } from 'lucide-react';
 
 export default async function BookingPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ paid?: string }> }) {
   const { id } = await params;
@@ -37,6 +42,9 @@ export default async function BookingPage({ params, searchParams }: { params: Pr
     ['Booked', true], ['Agreement for sale', agreementPaid], ['Sale deed registered', ['registered', 'handed_over'].includes(b.status)], ['Handed over', b.status === 'handed_over'],
   ];
   const nowIdx = steps.findIndex(([, d]) => !d);
+  const near = nearPlot(plot!, site.plots, asLayout(project!.layout), site.milestones, (project!.ai_summary as unknown as ProjectSummary | null));
+  const nearKeys = new Set((near?.items || []).map((i) => i.key));
+  const nearUpdates = site.updates.filter((u) => u.milestone_key && nearKeys.has(u.milestone_key)).slice(0, 3);
 
   return (
     <div className="grid gap-6">
@@ -99,6 +107,35 @@ export default async function BookingPage({ params, searchParams }: { params: Pr
           </section>
         </div>
       </div>
+
+      {near && (
+        <section className="card grid gap-4 p-5">
+          <div><h2 className="flex items-center gap-2 font-semibold"><MapPinned className="size-5 text-accent" />Near your plot</h2>
+            {near.headline && <p className="mt-1 text-[14px] text-ink-2">{near.headline}</p>}</div>
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {near.items.map((i) => (
+              <li key={i.key} className="rounded-2xl border border-line p-3">
+                <div className="flex items-start justify-between gap-2"><div className="text-[13.5px] font-semibold">{i.label}</div>
+                  {i.stateLabel && <span className="whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-bold" style={{ color: STATE_COLOR[i.state!], background: `color-mix(in srgb, ${STATE_COLOR[i.state!]} 13%, transparent)` }}>{i.stateLabel}</span>}</div>
+                <div className="mt-2 flex items-center gap-2"><ProgressBar value={i.progress} /><span className="num text-[12.5px] font-semibold">{Math.round(i.progress)}%</span></div>
+                <div className="mt-1.5 text-[12px] text-ink-3">{[i.distance, i.progress < 100 && i.forecast ? `expected ${date(i.forecast)}` : null].filter(Boolean).join(' · ')}</div>
+                <div className="mt-0.5 text-[12px] text-ink-2">{i.why}</div>
+              </li>
+            ))}
+          </ul>
+          {nearUpdates.length > 0 && (
+            <div className="grid gap-1.5 border-t border-line pt-3"><div className="text-[12px] font-bold uppercase tracking-wide text-ink-3">Latest work near you</div>
+              {nearUpdates.map((u) => <div key={u.id} className="text-[13px]"><span className="text-ink-3">{date(u.created_at)} · </span>{u.title}</div>)}</div>
+          )}
+          <p className="text-[11.5px] text-ink-3">“Expected” dates are forecasts from the current pace of work, updated daily. The developer’s committed handover date is in your agreement.</p>
+        </section>
+      )}
+
+      <section className="card grid gap-3 p-5">
+        <h2 className="flex items-center gap-2 font-semibold"><MessagesSquare className="size-5 text-accent" />Ask about your documents</h2>
+        <DocsChat projectId={project!.id} mine height="min(44dvh, 380px)" />
+        <p className="text-[11.5px] text-ink-3">Answers come only from your agreement and the project documents, with quotes. This is not legal advice; for disputes, talk to a lawyer.</p>
+      </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="card p-5">

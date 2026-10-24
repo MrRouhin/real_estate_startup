@@ -6,11 +6,13 @@ import { AnimatedNumber, Item, Stagger } from '@/components/ui/motion';
 import { ActionForm, SubmitButton } from '@/components/ui/action-form';
 import { LiveRefresh } from '@/components/live-refresh';
 import { createEmployee, linkLogin } from '../actions';
+import { loadAnalysis } from '@/lib/ai/analysis';
+import { AISource } from '@/components/ai/bits';
 
 export const metadata = { title: 'Employees' };
 
 export default async function Employees() {
-  const { supabase, orgId } = await requireStaff();
+  const { supabase, orgId, project } = await requireStaff();
   const days: string[] = [];
   for (let i = 13; i >= 0; i--) days.push(new Date(Date.now() + 5.5 * 3600000 - i * 86400000).toISOString().slice(0, 10));
   const [{ data: emps }, { data: att }, { data: cs }] = await Promise.all([
@@ -18,6 +20,7 @@ export default async function Employees() {
     supabase.from('attendance').select('employee_id, work_date, check_in_at, check_out_at, inside_geofence, distance_m, work_note').eq('org_id', orgId).gte('work_date', days[0]!),
     supabase.from('contractors').select('id, company_name').eq('org_id', orgId),
   ]);
+  const ai = project ? await loadAnalysis(supabase, project) : null;
   const today = todayIST();
   const cName = Object.fromEntries((cs || []).map((c) => [c.id, c.company_name]));
   const key = (e: string, d: string) => `${e}|${d}`;
@@ -39,6 +42,35 @@ export default async function Employees() {
         <Item className="card p-4"><div className="eyebrow">Arrived after 9:30</div><div className="num mt-1 text-[26px] font-medium"><AnimatedNumber value={late.length} /></div></Item>
         <Item className="card p-4"><div className="eyebrow">Wages for today</div><div className="num mt-1 text-[26px] font-medium">₹{wageToday.toLocaleString('en-IN')}</div></Item>
       </Stagger>
+
+      {ai && (
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+          <Section title="Crew vs output · last 7 days" action={<AISource source="rules" />}>
+            <div className="scroll-x"><table className="table min-w-[520px]">
+              <thead><tr><th>Contractor</th><th className="r">Person-days</th><th className="r">Progress</th><th className="r">Wages</th><th className="r">Work value done</th></tr></thead>
+              <tbody>{ai.crew.map((c) => (
+                <tr key={c.contractorId}>
+                  <td className="font-medium">{cName[c.contractorId]}{c.flag && <div className="flex items-center gap-1 text-[11.5px] font-semibold text-warn"><AlertTriangle className="size-3" />Crew on site, little progress</div>}</td>
+                  <td className="r num">{c.personDays7}<div className="text-[11px] text-ink-3">prev {c.personDaysPrev7}</div></td>
+                  <td className="r num">+{c.gain7} pts<div className="text-[11px] text-ink-3">prev +{c.gainPrev7}</div></td>
+                  <td className="r num">₹{c.wages7.toLocaleString('en-IN')}</td>
+                  <td className="r num">₹{c.earned7.toLocaleString('en-IN')}</td>
+                </tr>
+              ))}</tbody>
+            </table></div>
+            <p className="mt-2 text-[12px] text-ink-3">Progress is value-weighted across the contractor’s open packages. Many person-days with little progress usually means a blocker (material, drawings, rain) or idle crew.</p>
+          </Section>
+          <Section title="Check-in patterns · 14 days" action={<AISource source="rules" />}>
+            {ai.flags.length === 0 ? <p className="text-[13.5px] text-ink-2">No suspicious patterns.</p> : (
+              <ul className="grid gap-2">{ai.flags.map((f, i) => (
+                <li key={i} className="rounded-2xl border p-3 text-[13px]" style={{ borderColor: f.severity === 'critical' ? 'color-mix(in srgb, var(--bad) 40%, transparent)' : 'var(--line)' }}>
+                  <div className={'font-semibold ' + (f.severity === 'critical' ? 'text-bad' : 'text-warn')}>{f.title}</div><div className="mt-0.5 text-ink-2">{f.detail}</div>
+                </li>
+              ))}</ul>
+            )}
+          </Section>
+        </div>
+      )}
 
       <Section title="Today">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

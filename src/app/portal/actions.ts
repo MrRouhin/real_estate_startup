@@ -4,6 +4,8 @@
 import { revalidatePath } from 'next/cache';
 import { requireUser } from '@/lib/auth';
 import { fail, friendly, numOf, ok, str, type ActionResult } from '@/lib/actions';
+import { checkInvoice, fileBytes } from '@/lib/ai/delivery-check';
+import { hasServiceKey } from '@/lib/supabase/server';
 
 type A = (prev: ActionResult | null, fd: FormData) => Promise<ActionResult>;
 
@@ -59,11 +61,21 @@ export const vendorDelivery: A = async (_, fd) => {
     const up = await supabase.storage.from('site').upload(path, photo, { contentType: photo.type });
     if (!up.error) photos.push(path);
   }
-  const { error } = await supabase.from('deliveries').insert({
+  const inv = await fileBytes(fd.get('invoice'));
+  let invoicePath: string | null = null;
+  if (inv) {
+    const path = `${v!.org_id}/invoices/${Date.now()}-${inv.file.name.replace(/[^a-z0-9.]+/gi, '-')}`;
+    const up = await supabase.storage.from('site').upload(path, inv.file, { contentType: inv.mediaType });
+    if (!up.error) invoicePath = path;
+  }
+  const { data, error } = await supabase.from('deliveries').insert({
     org_id: v!.org_id, project_id: pr!.id, vendor_id: me, material_id: str(fd, 'material_id')!, quantity: q,
     vehicle_number: str(fd, 'vehicle_number'), invoice_number: str(fd, 'invoice_number'), location: str(fd, 'location'), photo_paths: photos,
-  });
+    invoice_path: invoicePath,
+  }).select('id').single();
   if (error) return fail(friendly(error));
+  // the store's AI check of the invoice photo is written by the server (vendors cannot write it themselves)
+  if (inv && hasServiceKey()) await checkInvoice(supabase, data.id, inv, 'vendor:' + me);
   revalidatePath('/portal');
   return ok('Delivery logged. The store will inspect it.');
 };

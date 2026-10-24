@@ -43,6 +43,90 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"ai_checks": {
+                  Row: {
+                    "created_at": string,"id": string,"kind": string,"org_id": string,"result": NonNullable<Json>,"subject_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"kind": string,"org_id": string,"result": NonNullable<Json>,"subject_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"kind"?: string,"org_id"?: string,"result"?: NonNullable<Json>,"subject_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ai_checks_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"ai_insights": {
+                  Row: {
+                    "body": string | null,"created_at": string,"created_by": string | null,"data": NonNullable<Json>,"decided_at": string | null,"decided_by": string | null,"id": string,"kind": string,"org_id": string,"project_id": string | null,"scope": string,"severity": string,"shared_with_contractor": boolean,"source": string,"status": string,"subject_id": string | null,"suggestion": Json | null,"title": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "body"?: string | null,"created_at"?: string,"created_by"?: string | null,"data"?: NonNullable<Json>,"decided_at"?: string | null,"decided_by"?: string | null,"id"?: string,"kind": string,"org_id": string,"project_id"?: string | null,"scope": string,"severity"?: string,"shared_with_contractor"?: boolean,"source"?: string,"status"?: string,"subject_id"?: string | null,"suggestion"?: Json | null,"title": string
+                  }
+                  Update: {
+                    "body"?: string | null,"created_at"?: string,"created_by"?: string | null,"data"?: NonNullable<Json>,"decided_at"?: string | null,"decided_by"?: string | null,"id"?: string,"kind"?: string,"org_id"?: string,"project_id"?: string | null,"scope"?: string,"severity"?: string,"shared_with_contractor"?: boolean,"source"?: string,"status"?: string,"subject_id"?: string | null,"suggestion"?: Json | null,"title"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ai_insights_decided_by_fkey"
+      columns: ["decided_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "ai_insights_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "ai_insights_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "material_stock"
+      referencedColumns: ["project_id"]
+    },{
+      foreignKeyName: "ai_insights_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "project_stats"
+      referencedColumns: ["project_id"]
+    },{
+      foreignKeyName: "ai_insights_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"ai_usage": {
+                  Row: {
+                    "actor": string | null,"created_at": string,"feature": string,"id": number,"input_tokens": number | null,"model": string | null,"org_id": string | null,"output_tokens": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "actor"?: string | null,"created_at"?: string,"feature": string,"id"?: never,"input_tokens"?: number | null,"model"?: string | null,"org_id"?: string | null,"output_tokens"?: number | null
+                  }
+                  Update: {
+                    "actor"?: string | null,"created_at"?: string,"feature"?: string,"id"?: never,"input_tokens"?: number | null,"model"?: string | null,"org_id"?: string | null,"output_tokens"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ai_usage_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"announcements": {
                   Row: {
                     "body": string | null,"created_at": string,"id": string,"org_id": string,"project_id": string,"title": string
@@ -277,6 +361,62 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"doc_chunks": {
+                  Row: {
+                    "booking_id": string | null,"content": string,"document_id": string | null,"heading": string | null,"id": number,"org_id": string,"project_id": string,"title": string,"tsv": unknown,"visibility": Database["public"]['Enums']["doc_visibility"]
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "booking_id"?: string | null,"content": string,"document_id"?: string | null,"heading"?: string | null,"id"?: never,"org_id": string,"project_id": string,"title": string,"tsv"?: never,"visibility"?: Database["public"]['Enums']["doc_visibility"]
+                  }
+                  Update: {
+                    "booking_id"?: string | null,"content"?: string,"document_id"?: string | null,"heading"?: string | null,"id"?: never,"org_id"?: string,"project_id"?: string,"title"?: string,"tsv"?: never,"visibility"?: Database["public"]['Enums']["doc_visibility"]
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "doc_chunks_booking_id_fkey"
+      columns: ["booking_id"]
+isOneToOne: false
+      referencedRelation: "booking_balances"
+      referencedColumns: ["booking_id"]
+    },{
+      foreignKeyName: "doc_chunks_booking_id_fkey"
+      columns: ["booking_id"]
+isOneToOne: false
+      referencedRelation: "bookings"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "doc_chunks_document_id_fkey"
+      columns: ["document_id"]
+isOneToOne: false
+      referencedRelation: "documents"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "doc_chunks_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "doc_chunks_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "material_stock"
+      referencedColumns: ["project_id"]
+    },{
+      foreignKeyName: "doc_chunks_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "project_stats"
+      referencedColumns: ["project_id"]
+    },{
+      foreignKeyName: "doc_chunks_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"documents": {
                   Row: {
                     "booking_id": string | null,"category": string,"created_at": string,"id": string,"org_id": string,"project_id": string,"storage_path": string,"title": string,"uploaded_by": string | null,"visibility": Database["public"]['Enums']["doc_visibility"]
@@ -459,6 +599,44 @@ isOneToOne: false
       referencedColumns: ["project_id"]
     },{
       foreignKeyName: "leads_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"market_factors": {
+                  Row: {
+                    "expected_year": number | null,"id": string,"impact_pct": number,"kind": string,"label": string,"org_id": string,"project_id": string,"sort_order": number,"source": string | null,"status": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "expected_year"?: number | null,"id"?: string,"impact_pct"?: number,"kind"?: string,"label": string,"org_id": string,"project_id": string,"sort_order"?: number,"source"?: string | null,"status"?: string
+                  }
+                  Update: {
+                    "expected_year"?: number | null,"id"?: string,"impact_pct"?: number,"kind"?: string,"label"?: string,"org_id"?: string,"project_id"?: string,"sort_order"?: number,"source"?: string | null,"status"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "market_factors_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "market_factors_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "material_stock"
+      referencedColumns: ["project_id"]
+    },{
+      foreignKeyName: "market_factors_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "project_stats"
+      referencedColumns: ["project_id"]
+    },{
+      foreignKeyName: "market_factors_project_id_fkey"
       columns: ["project_id"]
 isOneToOne: false
       referencedRelation: "projects"
@@ -747,6 +925,50 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"plot_events": {
+                  Row: {
+                    "created_at": string,"id": number,"kind": string,"org_id": string,"plot_id": string,"project_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: never,"kind": string,"org_id": string,"plot_id": string,"project_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: never,"kind"?: string,"org_id"?: string,"plot_id"?: string,"project_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "plot_events_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "plot_events_plot_id_fkey"
+      columns: ["plot_id"]
+isOneToOne: false
+      referencedRelation: "plots"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "plot_events_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "material_stock"
+      referencedColumns: ["project_id"]
+    },{
+      foreignKeyName: "plot_events_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "project_stats"
+      referencedColumns: ["project_id"]
+    },{
+      foreignKeyName: "plot_events_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"plot_price_history": {
                   Row: {
                     "changed_at": string,"id": number,"org_id": string,"plot_id": string,"price": number
@@ -821,14 +1043,14 @@ isOneToOne: false
                   ]
                 },"projects": {
                   Row: {
-                    "address": string | null,"city": string | null,"cover_image_path": string | null,"created_at": string,"description": string | null,"geofence_m": number,"id": string,"is_published": boolean,"layout": Json | null,"layout_svg_path": string | null,"layout_viewbox": string | null,"name": string,"org_id": string,"progress_percent": number,"rera_number": string | null,"site_lat": number | null,"site_lng": number | null,"slug": string,"status": Database["public"]['Enums']["project_status"]
+                    "address": string | null,"ai_summary": Json | null,"city": string | null,"cover_image_path": string | null,"created_at": string,"description": string | null,"geofence_m": number,"id": string,"is_published": boolean,"layout": Json | null,"layout_svg_path": string | null,"layout_viewbox": string | null,"name": string,"org_id": string,"progress_percent": number,"rera_number": string | null,"site_lat": number | null,"site_lng": number | null,"slug": string,"status": Database["public"]['Enums']["project_status"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "address"?: string | null,"city"?: string | null,"cover_image_path"?: string | null,"created_at"?: string,"description"?: string | null,"geofence_m"?: number,"id"?: string,"is_published"?: boolean,"layout"?: Json | null,"layout_svg_path"?: string | null,"layout_viewbox"?: string | null,"name": string,"org_id": string,"progress_percent"?: number,"rera_number"?: string | null,"site_lat"?: number | null,"site_lng"?: number | null,"slug": string,"status"?: Database["public"]['Enums']["project_status"]
+                    "address"?: string | null,"ai_summary"?: Json | null,"city"?: string | null,"cover_image_path"?: string | null,"created_at"?: string,"description"?: string | null,"geofence_m"?: number,"id"?: string,"is_published"?: boolean,"layout"?: Json | null,"layout_svg_path"?: string | null,"layout_viewbox"?: string | null,"name": string,"org_id": string,"progress_percent"?: number,"rera_number"?: string | null,"site_lat"?: number | null,"site_lng"?: number | null,"slug": string,"status"?: Database["public"]['Enums']["project_status"]
                   }
                   Update: {
-                    "address"?: string | null,"city"?: string | null,"cover_image_path"?: string | null,"created_at"?: string,"description"?: string | null,"geofence_m"?: number,"id"?: string,"is_published"?: boolean,"layout"?: Json | null,"layout_svg_path"?: string | null,"layout_viewbox"?: string | null,"name"?: string,"org_id"?: string,"progress_percent"?: number,"rera_number"?: string | null,"site_lat"?: number | null,"site_lng"?: number | null,"slug"?: string,"status"?: Database["public"]['Enums']["project_status"]
+                    "address"?: string | null,"ai_summary"?: Json | null,"city"?: string | null,"cover_image_path"?: string | null,"created_at"?: string,"description"?: string | null,"geofence_m"?: number,"id"?: string,"is_published"?: boolean,"layout"?: Json | null,"layout_svg_path"?: string | null,"layout_viewbox"?: string | null,"name"?: string,"org_id"?: string,"progress_percent"?: number,"rera_number"?: string | null,"site_lat"?: number | null,"site_lng"?: number | null,"slug"?: string,"status"?: Database["public"]['Enums']["project_status"]
                   }
                   Relationships: [
                     {
@@ -993,14 +1215,14 @@ isOneToOne: true
                   ]
                 },"work_packages": {
                   Row: {
-                    "contract_value": number,"contractor_id": string,"due_date": string | null,"id": string,"milestone_id": string | null,"org_id": string,"progress": number,"project_id": string,"scope": string | null,"start_date": string | null,"status": string,"title": string,"updated_at": string
+                    "contract_value": number,"contractor_id": string,"due_date": string | null,"id": string,"milestone_id": string | null,"org_id": string,"planned_qty": number | null,"progress": number,"project_id": string,"qty_unit": string | null,"scope": string | null,"start_date": string | null,"status": string,"title": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "contract_value"?: number,"contractor_id": string,"due_date"?: string | null,"id"?: string,"milestone_id"?: string | null,"org_id": string,"progress"?: number,"project_id": string,"scope"?: string | null,"start_date"?: string | null,"status"?: string,"title": string,"updated_at"?: string
+                    "contract_value"?: number,"contractor_id": string,"due_date"?: string | null,"id"?: string,"milestone_id"?: string | null,"org_id": string,"planned_qty"?: number | null,"progress"?: number,"project_id": string,"qty_unit"?: string | null,"scope"?: string | null,"start_date"?: string | null,"status"?: string,"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "contract_value"?: number,"contractor_id"?: string,"due_date"?: string | null,"id"?: string,"milestone_id"?: string | null,"org_id"?: string,"progress"?: number,"project_id"?: string,"scope"?: string | null,"start_date"?: string | null,"status"?: string,"title"?: string,"updated_at"?: string
+                    "contract_value"?: number,"contractor_id"?: string,"due_date"?: string | null,"id"?: string,"milestone_id"?: string | null,"org_id"?: string,"planned_qty"?: number | null,"progress"?: number,"project_id"?: string,"qty_unit"?: string | null,"scope"?: string | null,"start_date"?: string | null,"status"?: string,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -1027,6 +1249,96 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "projects"
       referencedColumns: ["id","org_id"]
+    }
+                  ]
+                },"wp_material_budget": {
+                  Row: {
+                    "id": string,"material_id": string,"org_id": string,"planned_qty": number,"work_package_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: string,"material_id": string,"org_id": string,"planned_qty": number,"work_package_id": string
+                  }
+                  Update: {
+                    "id"?: string,"material_id"?: string,"org_id"?: string,"planned_qty"?: number,"work_package_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "wp_material_budget_material_id_fkey"
+      columns: ["material_id"]
+isOneToOne: false
+      referencedRelation: "material_stock"
+      referencedColumns: ["material_id"]
+    },{
+      foreignKeyName: "wp_material_budget_material_id_fkey"
+      columns: ["material_id"]
+isOneToOne: false
+      referencedRelation: "materials"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "wp_material_budget_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "wp_material_budget_work_package_id_fkey"
+      columns: ["work_package_id"]
+isOneToOne: false
+      referencedRelation: "work_packages"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"wp_plan_points": {
+                  Row: {
+                    "id": string,"note": string | null,"org_id": string,"planned_date": string,"planned_pct": number,"work_package_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: string,"note"?: string | null,"org_id": string,"planned_date": string,"planned_pct": number,"work_package_id": string
+                  }
+                  Update: {
+                    "id"?: string,"note"?: string | null,"org_id"?: string,"planned_date"?: string,"planned_pct"?: number,"work_package_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "wp_plan_points_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "wp_plan_points_work_package_id_fkey"
+      columns: ["work_package_id"]
+isOneToOne: false
+      referencedRelation: "work_packages"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"wp_progress_log": {
+                  Row: {
+                    "id": number,"logged_at": string,"logged_by": string | null,"note": string | null,"org_id": string,"progress": number,"work_package_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: never,"logged_at"?: string,"logged_by"?: string | null,"note"?: string | null,"org_id": string,"progress": number,"work_package_id": string
+                  }
+                  Update: {
+                    "id"?: never,"logged_at"?: string,"logged_by"?: string | null,"note"?: string | null,"org_id"?: string,"progress"?: number,"work_package_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "wp_progress_log_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "wp_progress_log_work_package_id_fkey"
+      columns: ["work_package_id"]
+isOneToOne: false
+      referencedRelation: "work_packages"
+      referencedColumns: ["id"]
     }
                   ]
                 }
@@ -1366,6 +1678,41 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"search_docs":
+{ Args: { "p_limit"?: number,"p_project": string,"p_query": string }; Returns: {
+              "content": string,"document_id": string,"heading": string,"id": number,"rank": number,"title": string,"visibility": Database["public"]['Enums']["doc_visibility"]
+            }[]
+                           },
+"seed_ai_demo":
+{ Args: { "p_org": string }; Returns: string
+                           },
+"share_ai_insight":
+{ Args: { "p_insight": string }; Returns: {
+              "body": string | null,
+"created_at": string,
+"created_by": string | null,
+"data": NonNullable<Json>,
+"decided_at": string | null,
+"decided_by": string | null,
+"id": string,
+"kind": string,
+"org_id": string,
+"project_id": string | null,
+"scope": string,
+"severity": string,
+"shared_with_contractor": boolean,
+"source": string,
+"status": string,
+"subject_id": string | null,
+"suggestion": Json | null,
+"title": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "ai_insights"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "start_booking":
 { Args: { "p_plot_id": string }; Returns: {
               "buyer_id": string,
@@ -1388,6 +1735,9 @@ isOneToOne: false
 "submit_enquiry":
 { Args: { "p_email"?: string,"p_message"?: string,"p_name": string,"p_phone": string,"p_plot"?: string,"p_project": string,"p_visit_at"?: string }; Returns: string
                            },
+"track_plot_event":
+{ Args: { "p_kind": string,"p_plot": string }; Returns: undefined
+                           },
 "update_work_progress":
 { Args: { "p_note"?: string,"p_package": string,"p_progress": number }; Returns: {
               "contract_value": number,
@@ -1396,8 +1746,10 @@ isOneToOne: false
 "id": string,
 "milestone_id": string | null,
 "org_id": string,
+"planned_qty": number | null,
 "progress": number,
 "project_id": string,
+"qty_unit": string | null,
 "scope": string | null,
 "start_date": string | null,
 "status": string,
@@ -1409,7 +1761,10 @@ isOneToOne: false
         to: "work_packages"
         isOneToOne: true
         isSetofReturn: false
-      } }
+      } },
+"wp_is_mine":
+{ Args: { "p_wp": string }; Returns: boolean
+                           }
           }
           Enums: {
             "app_role": "buyer"|"seller"|"admin"|"contractor"|"vendor"|"employee","booking_status": "pending_payment"|"confirmed"|"registered"|"handed_over"|"cancelled"|"refund_due","delivery_status": "pending_inspection"|"accepted"|"partially_accepted"|"rejected","doc_visibility": "public"|"buyer"|"internal","facing": "north"|"south"|"east"|"west"|"north_east"|"north_west"|"south_east"|"south_west","installment_status": "due"|"paid"|"overdue","lead_stage": "new"|"contacted"|"site_visit"|"negotiation"|"won"|"lost","org_role": "owner"|"manager"|"staff","payment_status": "created"|"paid"|"failed"|"refunded","plot_status": "available"|"held"|"booked"|"sold"|"blocked","project_status": "upcoming"|"ongoing"|"completed","request_status": "requested"|"approved"|"issued"|"rejected","stock_move": "opening"|"received"|"rejected"|"issued"|"consumed"|"wastage"|"returned","trade": "civil"|"roads"|"electrical"|"plumbing"|"landscaping"|"other"

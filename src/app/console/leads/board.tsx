@@ -15,6 +15,7 @@ export type BoardLead = {
   id: string; full_name: string; phone: string; source: string; stage: LeadStage; budget_min: number | null; budget_max: number | null;
   preferred_size: number | null; next_follow_up_at: string | null; assigned_to: string | null; updated_at: string; created_at: string;
   plot: string | null; owner: string | null; visit: string | null; lost_reason: string | null;
+  score?: number | null; band?: string; action?: string | null;
 };
 const STAGES: { key: LeadStage; label: string; color: string }[] = [
   { key: 'new', label: 'New', color: 'var(--accent)' },
@@ -128,8 +129,13 @@ function Card({ lead: l, now }: { lead: BoardLead; now: number }) {
       className={'cursor-grab touch-none rounded-xl border bg-surface p-3 text-[13px] active:cursor-grabbing ' + (isDragging ? 'border-accent shadow-2xl' : 'border-line shadow-sm hover:border-accent/40')}>
       <div className="flex items-start justify-between gap-2">
         <Link href={`/console/leads/${l.id}`} className="font-semibold leading-tight hover:text-accent" onPointerDown={(e) => e.stopPropagation()}>{l.full_name}</Link>
-        {t === 'hot' && <span className="inline-flex items-center gap-0.5 rounded-full bg-[color-mix(in_srgb,var(--bad)_14%,transparent)] px-1.5 text-[10.5px] font-bold text-bad"><Flame className="size-3" />Hot</span>}
-        {t === 'cold' && <span className="rounded-full bg-surface-2 px-1.5 text-[10.5px] font-semibold text-ink-3">Cold</span>}
+        {l.score != null ? (
+          <span title={`Lead score ${l.score}/100 (${l.band}). Open the lead to see why.`} className={'inline-flex items-center gap-0.5 rounded-full px-1.5 text-[10.5px] font-bold ' + (l.band === 'hot' ? 'bg-[color-mix(in_srgb,var(--bad)_14%,transparent)] text-bad' : l.band === 'warm' ? 'bg-[color-mix(in_srgb,var(--warn)_14%,transparent)] text-warn' : 'bg-surface-2 text-ink-3')}>
+            {l.band === 'hot' && <Flame className="size-3" />}<span className="num">{l.score}</span></span>
+        ) : <>
+          {t === 'hot' && <span className="inline-flex items-center gap-0.5 rounded-full bg-[color-mix(in_srgb,var(--bad)_14%,transparent)] px-1.5 text-[10.5px] font-bold text-bad"><Flame className="size-3" />Hot</span>}
+          {t === 'cold' && <span className="rounded-full bg-surface-2 px-1.5 text-[10.5px] font-semibold text-ink-3">Cold</span>}
+        </>}
       </div>
       <div className="mt-1 flex items-center gap-1 text-[12px] text-ink-3"><Phone className="size-3" />{phone(l.phone)}</div>
       <div className="mt-2 flex flex-wrap gap-1">
@@ -138,6 +144,7 @@ function Card({ lead: l, now }: { lead: BoardLead; now: number }) {
         <span className="tag capitalize">{l.source.replace('_', ' ')}</span>
       </div>
       {l.lost_reason && l.stage === 'lost' && <div className="mt-1.5 text-[11.5px] text-ink-3">{l.lost_reason}</div>}
+      {l.action && <div className="mt-1.5 text-[11.5px] font-medium text-accent">→ {l.action}</div>}
       <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-line pt-2 text-[11.5px]">
         {l.visit ? <span className="flex items-center gap-1 font-medium text-warn"><CalendarClock className="size-3.5" />{dateTime(l.visit)}</span>
           : overdue ? <span className="font-semibold text-bad">Follow-up overdue</span>

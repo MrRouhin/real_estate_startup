@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { AlertTriangle, ArrowRight, CalendarClock, Package, PhoneCall, Truck, Users } from 'lucide-react';
+import { AlertTriangle, ArrowRight, CalendarClock, Package, PhoneCall, Sparkles, Truck, Users } from 'lucide-react';
 import { requireStaff } from '@/lib/auth';
 import { loadSite } from '@/lib/queries';
 import { asLayout, STATUS_COLOR, STATUS_LABEL } from '@/lib/site';
@@ -11,6 +11,8 @@ import { AnimatedNumber, Item, Stagger } from '@/components/ui/motion';
 import { Empty, PageHeader, Section } from '@/components/ui/bits';
 import { LiveRefresh } from '@/components/live-refresh';
 import type { PlotStatus } from '@/lib/types';
+import { AISource, ReportText, SEVERITY_COLOR } from '@/components/ai/bits';
+import { RunAnalysisButton } from '@/components/ai/run-button';
 
 export const metadata = { title: 'Overview' };
 
@@ -19,7 +21,7 @@ export default async function Overview() {
   if (!project) return <Empty title="No project yet">Ask the platform admin to create your first project.</Empty>;
   const since = new Date(); since.setMonth(since.getMonth() - 7); since.setDate(1);
   const in7 = new Date(Date.now() + 7 * 86400000).toISOString();
-  const [stats, balances, leads, pays, feed, visits, followUps, emps, att, deliveries, requests, stock, site] = await Promise.all([
+  const [stats, balances, leads, pays, feed, visits, followUps, emps, att, deliveries, requests, stock, site, insights] = await Promise.all([
     supabase.from('project_stats').select('*').eq('project_id', project.id).single(),
     supabase.from('booking_balances').select('balance, status').eq('org_id', orgId).in('status', ['confirmed', 'registered', 'handed_over']),
     supabase.from('leads').select('stage').eq('org_id', orgId),
@@ -33,7 +35,11 @@ export default async function Overview() {
     supabase.from('material_requests').select('id', { count: 'exact', head: true }).eq('org_id', orgId).in('status', ['requested', 'approved']),
     supabase.from('material_stock').select('name, in_store, reorder_level, unit').eq('project_id', project.id),
     loadSite(supabase, project.id),
+    supabase.from('ai_insights').select('id, kind, severity, title, body, source, created_at').eq('project_id', project.id).eq('status', 'open').order('created_at', { ascending: false }).limit(60),
   ]);
+  const brief = (insights.data || []).find((i) => i.kind === 'project_brief');
+  const urgent = (insights.data || []).filter((i) => i.severity === 'critical' && i.kind !== 'project_brief' && i.kind !== 'weekly_report').slice(0, 4);
+  const briefStale = !brief || Date.now() - new Date(brief.created_at).getTime() > 12 * 3600_000;
   const s = stats.data!;
   const outstanding = (balances.data || []).reduce((a, b) => a + Number(b.balance), 0);
   const stageCount = (st: string) => (leads.data || []).filter((l) => l.stage === st).length;
@@ -52,6 +58,28 @@ export default async function Overview() {
       <PageHeader eyebrow={new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata' })}
         title={`Good ${hourIST < 12 ? 'morning' : hourIST < 17 ? 'afternoon' : 'evening'}, ${profile.full_name?.split(' ')[0] || 'team'}`}
         sub={<>{project.name} is <b className="num text-ink">{Math.round(Number(project.progress_percent))}%</b> developed with <b className="num text-ink">{s.available}</b> plots on sale.</>} />
+
+      <section className="card relative overflow-hidden p-4 sm:p-5" style={{ background: 'linear-gradient(135deg, color-mix(in srgb, var(--accent) 9%, var(--surface)), var(--surface) 60%)' }}>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="flex items-center gap-2 text-[15.5px] font-semibold"><Sparkles className="size-4 text-accent" />AI briefing {brief && <AISource source={brief.source} />}</h2>
+          <div className="flex items-center gap-2">
+            <RunAnalysisButton auto={briefStale} label="Refresh" className="btn btn-ghost btn-sm" />
+            <Link href="/console/insights" className="btn btn-sm">All insights <ArrowRight className="size-3.5" /></Link>
+          </div>
+        </div>
+        <div className="mt-3 grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+          {brief?.body ? <ReportText text={brief.body} /> : <p className="text-[13.5px] text-ink-2">Reading today’s numbers…</p>}
+          {urgent.length > 0 && (
+            <ul className="grid content-start gap-2">
+              {urgent.map((u) => (
+                <li key={u.id}><Link href="/console/insights" className="flex items-start gap-2 rounded-xl border border-line bg-surface p-2.5 text-[13px] hover:border-accent">
+                  <span className="mt-1 size-2 shrink-0 rounded-full" style={{ background: SEVERITY_COLOR[u.severity] }} /><span>{u.title}</span>
+                </Link></li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
 
       <Stagger className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         {[

@@ -6,7 +6,10 @@ import { Empty, PageHeader, Section } from '@/components/ui/bits';
 import { Item, Stagger, TiltCard } from '@/components/ui/motion';
 import { ActionForm, SubmitButton } from '@/components/ui/action-form';
 import { LiveRefresh } from '@/components/live-refresh';
-import { createVendor, inspectDelivery, recordDelivery } from '../actions';
+import { attachInvoice, createVendor, inspectDelivery, recordDelivery } from '../actions';
+import { deliveryChecks } from '@/lib/ai/invoice';
+import type { AICheck } from '@/lib/ai/delivery-check';
+import { DeliveryFlags } from '@/components/ai/delivery-flags';
 
 export const metadata = { title: 'Vendors' };
 
@@ -15,9 +18,11 @@ export default async function Vendors() {
   const [{ data: vendors }, { data: dels }, { data: mats }] = await Promise.all([
     supabase.from('vendors').select('*').eq('org_id', orgId).order('company_name'),
     supabase.from('deliveries').select('*, materials(name, unit)').eq('org_id', orgId).order('delivered_at', { ascending: false }),
-    supabase.from('materials').select('id, name, unit').eq('org_id', orgId).order('name'),
+    supabase.from('materials').select('id, name, unit, unit_cost').eq('org_id', orgId).order('name'),
   ]);
   const pending = (dels || []).filter((d) => d.status === 'pending_inspection');
+  const { data: checks } = pending.length ? await supabase.from('ai_checks').select('subject_id, result').eq('kind', 'invoice').in('subject_id', pending.map((d) => d.id)) : { data: [] };
+  const checkOf = (id: string) => ((checks || []).find((c) => c.subject_id === id)?.result as unknown as AICheck | undefined) ?? null;
   return (
     <>
       <LiveRefresh tables={['deliveries']} filter={`org_id=eq.${orgId}`} />
@@ -30,7 +35,14 @@ export default async function Vendors() {
                 <div className="flex items-start gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-xl bg-held/20 text-warn"><Truck className="size-5" /></span>
                   <div className="min-w-0"><div className="font-semibold">{qty(d.quantity)} {mat.unit} {mat.name}</div>
                     <div className="text-[12.5px] text-ink-2">{v?.company_name} · vehicle <span className="num">{d.vehicle_number || '—'}</span> · invoice <span className="num">{d.invoice_number || '—'}</span></div>
-                    <div className="text-[12px] text-ink-3">{d.location} · {dateTime(d.delivered_at)}</div></div></div>
+                    <div className="text-[12px] text-ink-3">{d.location} · {dateTime(d.delivered_at)}{d.unit_cost != null && <> · ₹{Number(d.unit_cost).toLocaleString('en-IN')}/{mat.unit.replace(/s$/, '')}</>}</div></div></div>
+                <DeliveryFlags rules={deliveryChecks(d, dels || [], (mats || []).find((m) => m.id === d.material_id) || null, v || null).flags} ai={checkOf(d.id)} />
+                <ActionForm action={attachInvoice} reset className="mt-2 flex flex-wrap items-center gap-2">
+                  <input type="hidden" name="id" value={d.id} />
+                  <label className="text-[12px] text-ink-2" htmlFor={`inv-${d.id}`}>{d.invoice_path ? 'Re-check with a new photo:' : 'Invoice photo:'}</label>
+                  <input id={`inv-${d.id}`} name="invoice" type="file" accept="image/*" capture="environment" className="max-w-[180px] text-[12px]" />
+                  <SubmitButton className="btn btn-sm" pendingText="Reading…">Check invoice</SubmitButton>
+                </ActionForm>
                 <ActionForm action={inspectDelivery} className="mt-3 flex flex-wrap items-end gap-2">
                   <input type="hidden" name="id" value={d.id} />
                   <div><label className="label" htmlFor={`a-${d.id}`}>Accepted</label><input id={`a-${d.id}`} name="accepted" className="input num !w-28" defaultValue={Number(d.quantity)} /></div>
@@ -80,7 +92,9 @@ export default async function Vendors() {
             <div><label className="label" htmlFor="dvh">Vehicle number</label><input id="dvh" name="vehicle_number" className="input num" placeholder="KA 01 AB 1234" /></div>
             <div><label className="label" htmlFor="di">Invoice number</label><input id="di" name="invoice_number" className="input num" /></div>
             <div className="col-span-2"><label className="label" htmlFor="dl">Delivered to</label><input id="dl" name="location" className="input" placeholder="Main store" /></div>
-            <SubmitButton className="btn btn-primary col-span-2">Log delivery</SubmitButton>
+            <div className="col-span-2"><label className="label" htmlFor="dinv">Invoice photo (optional)</label><input id="dinv" name="invoice" type="file" accept="image/*" capture="environment" className="input" />
+              <p className="mt-1 text-[11.5px] text-ink-3">With an AI key, the invoice is read and compared with what you typed: invoice number, quantity, rate, vehicle and GSTIN.</p></div>
+            <SubmitButton className="btn btn-primary col-span-2" pendingText="Saving…">Log delivery</SubmitButton>
           </ActionForm>
         </Section>
         <Section title="Add vendor">
