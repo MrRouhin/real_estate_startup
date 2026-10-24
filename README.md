@@ -145,12 +145,14 @@ src/
     console/           developer console (+ actions.ts: all console server actions)
     portal/            contractor / vendor / employee portal
     api/payments/      create-order, verify, simulate      api/webhooks/razorpay
+    api/ai/            match, docs, house, ask             api/cron/insights (daily analysis)
   components/
     three/             site-scene (3D site), construction-timeline (replay), stock-yard (3D stores)
     ui/                motion (counters, tilt cards, rings), sheet, toast, tabs, forms
   lib/                 supabase clients, auth/roles, formatting, site geometry
+  lib/ai/              analytics (plan, materials, crew, leads, pricing, outlook, cost, house), model client, reports
 supabase/
-  migrations/          0001 core schema … 0009 realtime — the whole backend
+  migrations/          0001 core schema … 0014 AI layer — the whole backend
   tests/               SQL tests for RLS, booking, stock, attendance, CRM
 scripts/seed.mjs       demo data for any Supabase project
 ```
@@ -171,6 +173,7 @@ scripts/seed.mjs       demo data for any Supabase project
 | 0010 hold cleanup | pg_cron job that frees expired 15-minute holds every minute (skipped where pg_cron isn't installed) |
 | 0011 hardening | trigger functions not callable over the API; fixed search_path (from the Supabase security advisor) |
 | 0012–0013 setup tooling | the `http` extension used once to upload the hosted demo's PDFs, then removed |
+| 0014 AI layer | baseline plans, material budgets, progress history, `ai_insights` (suggest → approve trail), staff-only `ai_checks`, `doc_chunks` full-text search, `plot_events` demand signals, `market_factors`, `share_ai_insight`, demo data function |
 
 Run the SQL tests on any Postgres 15+:
 ```bash
