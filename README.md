@@ -2,9 +2,9 @@
 
 **REMMO** (Real Estate Management and Marketing Organisation) is a real estate platform for plotted layouts and apartment towers. Buyers pick a flat or a plot in 3D, walk through the finished home before it is built, see how far their floor has been built today, hold it for 15 minutes and pay the booking amount online. The developer runs sales, CRM, towers, construction, contractors, materials, suppliers and site attendance from one console; contractors, suppliers and site workers each get their own workspace. Everyone works on the same live data.
 
-Live: https://real-estate-startup-rmgroups.vercel.app (add `remmo.vercel.app` under Vercel → Settings → Domains to use the new name).
+Live demo: https://real-estate-startup-rmgroups.vercel.app (moving to https://remmo.vercel.app).
 
-![Overview](docs/screenshots/console-overview.png)
+![Walk through flat A-1203 before it is built](docs/screenshots/flat-tour.webp)
 
 ## What's in it
 
@@ -61,11 +61,17 @@ Code: `src/lib/ai/` (pure analytics + one model client with fallbacks), `src/com
 
 | | |
 | --- | --- |
-| ![Landing](docs/screenshots/home.png) Landing page with the live 3D site | ![Project](docs/screenshots/project.png) Project page: construction replay and milestone progress |
-| ![Plot explorer](docs/screenshots/explorer.png) Plot explorer (3D/2D, filters, live status) | ![CRM](docs/screenshots/console-leads.png) CRM pipeline with drag-and-drop |
-| ![Contractor materials](docs/screenshots/console-contractor-materials.png) Contractor: material issued vs used vs wasted | ![Stores](docs/screenshots/console-materials.png) Materials ledger with the 3D store yard |
-| ![Employees](docs/screenshots/console-employees.png) Employees: today's board and 14-day attendance | ![Contractor portal](docs/screenshots/portal-contractor.png) Contractor portal |
-| ![Employee check-in](docs/screenshots/portal-employee.png) Employee GPS + selfie check-in | ![Phone, dark](docs/screenshots/phone-home-dark.png) Phone, dark mode |
+| ![Landing page: live 3D towers](docs/screenshots/home.webp) Landing page: live 3D towers | ![Apartment project: towers as built today](docs/screenshots/project.webp) Apartment project: towers as built today |
+| ![Walk through a flat (furnished, real sun)](docs/screenshots/flat-tour.webp) Walk through a flat (furnished, real sun) | ![Dollhouse view of the same flat](docs/screenshots/flat-dollhouse.webp) Dollhouse view of the same flat |
+| ![Flat explorer: filters, stacking plan, 3D](docs/screenshots/flats-explorer.webp) Flat explorer: filters, stacking plan, 3D | ![Plot explorer for plotted layouts](docs/screenshots/explorer.webp) Plot explorer for plotted layouts |
+| ![Separate sign-in for each role](docs/screenshots/login.webp) Separate sign-in for each role | ![Developer console: overview and AI briefing](docs/screenshots/console-overview.webp) Developer console: overview and AI briefing |
+| ![Towers: post slab and stage progress](docs/screenshots/console-towers.webp) Towers: post slab and stage progress | ![Approvals: RA bills, KYC, join requests](docs/screenshots/console-approvals.webp) Approvals: RA bills, KYC, join requests |
+| ![CRM pipeline with drag-and-drop](docs/screenshots/console-leads.webp) CRM pipeline with drag-and-drop | ![Letters drafted from records](docs/screenshots/console-letters.webp) Letters drafted from records |
+| ![Contractor: plan vs actual, materials](docs/screenshots/console-contractor-materials.webp) Contractor: plan vs actual, materials | ![Materials ledger and reorder forecast](docs/screenshots/console-materials.webp) Materials ledger and reorder forecast |
+| ![Employees: crew vs output, check-in patterns](docs/screenshots/console-employees.webp) Employees: crew vs output, check-in patterns | ![Contractor workspace](docs/screenshots/contractor.webp) Contractor workspace |
+| ![Running bills: submitted to paid](docs/screenshots/contractor-bills.webp) Running bills: submitted to paid | ![Supplier: purchase orders to accept and dispatch](docs/screenshots/vendor-orders.webp) Supplier: purchase orders to accept and dispatch |
+| ![Site employee: check-in and tasks (phone)](docs/screenshots/employee.webp) Site employee: check-in and tasks (phone) | ![Site ID card with QR (phone)](docs/screenshots/employee-id-card.webp) Site ID card with QR (phone) |
+| ![Phone, dark mode](docs/screenshots/phone-home-dark.webp) Phone, dark mode | |
 
 ## Stack
 
@@ -83,7 +89,7 @@ All business rules live in the database (`supabase/migrations`), so the web app,
 
 ### 2. Configure and install
 ```bash
-git clone https://github.com/MrRouhin/real_estate_startup.git && cd real_estate_startup
+git clone https://github.com/MrRouhin/remmo.git && cd remmo
 cp .env.example .env.local     # paste the three Supabase values
 npm install
 ```
@@ -130,9 +136,9 @@ The amount always comes from the database. The webhook is the source of truth an
 
 GitHub stores the code; it can't run it (GitHub Pages only serves static files, and this app needs a server and a database). **Supabase** runs the database and **Vercel** runs the website; Vercel redeploys by itself on every push to `main`.
 
-**The database is already live**: Supabase project `plotline` (Mumbai; the internal project name predates the REMMO name) has the migrations, the demo data, the documents and the every-minute hold cleanup. The public connection settings for it are in `.env.production`, so the site needs only one secret.
+**The database is already live**: the hosted Supabase project (Mumbai) has the migrations, the demo data, the documents and the every-minute hold cleanup. The public connection settings for it are in `.env.production`, so the site needs only one secret.
 
-1. **Deploy the website**: [vercel.com/new](https://vercel.com/new) → *Continue with GitHub* → **Import** `real_estate_startup` → **Deploy**. Nothing to fill in. In about two minutes you get a link like `https://real-estate-startup.vercel.app`.
+1. **Deploy the website**: [vercel.com/new](https://vercel.com/new) → *Continue with GitHub* → **Import** `remmo` → **Deploy**. Nothing to fill in. In about two minutes you get a link like `https://remmo.vercel.app`.
 2. **Add the one secret** (needed for token payments, ID upload and linking portal logins): Supabase → Project Settings → **API Keys** → copy the **secret** key (or the legacy `service_role` key). In Vercel → your project → Settings → **Environment Variables** add `SUPABASE_SERVICE_ROLE_KEY` = that key → Deployments → ⋯ → **Redeploy**.
 3. **Tell Supabase the site's address**: Supabase → Authentication → **URL Configuration** → Site URL = your Vercel link, and add `https://<your-domain>/**` under Redirect URLs (used by sign-up confirmation emails).
 

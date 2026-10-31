@@ -22,7 +22,8 @@ export async function ApartmentOverview({ supabase, project, profile }: { supaba
     <>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.75fr)]">
         <div className="overflow-hidden rounded-[22px] border border-line">
-          <TowerView towers={d.towers} flats={d.flats} types={d.types} height="min(64vh, 560px)" />
+          {/* fills the card when the details column beside it is taller */}
+          <TowerView towers={d.towers} flats={d.flats} types={d.types} height="100%" className="min-h-[min(64vh,560px)]" />
         </div>
         <Stagger className="grid content-start gap-4">
           <Item>
