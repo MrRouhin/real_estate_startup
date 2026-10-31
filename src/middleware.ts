@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-const PROTECTED = ['/console', '/portal', '/me', '/book'];
+const PROTECTED = ['/console', '/portal', '/contractor', '/vendor', '/employee', '/letters', '/me', '/book'];
 
 // Refreshes the Supabase session cookie on every request and sends signed-out
 // visitors of protected areas to /login. Role checks happen in each layout.

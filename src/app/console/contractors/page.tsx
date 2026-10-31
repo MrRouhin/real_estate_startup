@@ -25,7 +25,7 @@ export default async function Contractors() {
   const totalValue = (wps || []).reduce((a, w) => a + Number(w.contract_value), 0);
   return (
     <>
-      <PageHeader eyebrow="Site" title="Contractors" sub={<>{(cs || []).length} contractors · <b className="num text-ink">{lakh(totalValue)}</b> of work contracted</>}>
+      <PageHeader emoji="👷" eyebrow="Site" title="Contractors" sub={<>{(cs || []).length} contractors · <b className="num text-ink">{lakh(totalValue)}</b> of work contracted</>}>
         <AddContractor />
       </PageHeader>
       {(cs || []).length === 0 ? <Empty title="No contractors yet">Add the companies doing civil, road, electrical and landscaping work.</Empty> : (

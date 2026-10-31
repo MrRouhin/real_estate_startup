@@ -13,6 +13,7 @@ import { LiveRefresh } from '@/components/live-refresh';
 import { Item, ProgressRing, Stagger } from '@/components/ui/motion';
 import { Empty } from '@/components/ui/bits';
 import { DocsAskButton } from '@/components/ai/docs-ask';
+import { ApartmentOverview } from './apartments';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -42,7 +43,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
   return (
     <div className="grid gap-8">
-      <LiveRefresh tables={['plots', 'construction_updates', 'milestones']} filter={`project_id=eq.${project.id}`} />
+      <LiveRefresh tables={['plots', 'construction_updates', 'milestones', 'towers']} filter={`project_id=eq.${project.id}`} />
+      {project.kind === 'apartments' ? <ApartmentOverview supabase={supabase} project={project as never} profile={profile ? { full_name: profile.full_name, phone: profile.phone, email: profile.email } : null} /> : <>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.75fr)]">
         {plots.length > 0 ? (
           <ConstructionTimeline plots={plots} layout={layout} current={progress} updates={updates} height="min(64vh, 540px)" />
@@ -90,6 +92,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           </Stagger>
         </section>
       )}
+      </>}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <section>

@@ -1,4 +1,6 @@
+import { redirect } from 'next/navigation';
 import { requireStaff } from '@/lib/auth';
+import { NoProject } from '@/components/console/no-project';
 import { loadSite } from '@/lib/queries';
 import { asLayout, MILESTONES } from '@/lib/site';
 import { date } from '@/lib/format';
@@ -16,6 +18,8 @@ export const metadata = { title: 'Construction' };
 
 export default async function Construction() {
   const { supabase, project } = await requireStaff();
+  if (!project) return <NoProject />;
+  if (project.kind === 'apartments') redirect('/console/towers');
   const site = await loadSite(supabase, project!.id);
   const { data: wps } = await supabase.from('work_packages').select('milestone_id, contractors(company_name)').eq('project_id', project!.id);
   const { data: checks } = site.updates.length ? await supabase.from('ai_checks').select('subject_id, result').eq('kind', 'photo').in('subject_id', site.updates.map((u) => u.id)) : { data: [] };
@@ -24,7 +28,7 @@ export default async function Construction() {
   return (
     <>
       <LiveRefresh tables={['construction_updates', 'milestones']} filter={`project_id=eq.${project!.id}`} />
-      <PageHeader eyebrow={project!.name} title="Construction"
+      <PageHeader emoji="🏗️" eyebrow={project!.name} title="Construction"
         sub={<>Overall <b className="num text-ink">{Math.round(Number(project!.progress_percent))}%</b>, weighted by milestone. Each update moves one milestone, notifies every buyer, and is replayable in 3D.</>} />
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(340px,0.6fr)]">
         <ConstructionTimeline plots={site.plots} layout={asLayout(project!.layout)} current={site.progress} updates={site.updates} height={480} />

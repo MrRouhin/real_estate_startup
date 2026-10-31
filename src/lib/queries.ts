@@ -8,7 +8,7 @@ export const PLOT_FIELDS = 'id, plot_number, status, shape_path, area_sqft, faci
 /** Everything needed to draw a project's site in 2D/3D and replay its construction. */
 export async function loadSite(supabase: ServerSupabase, projectId: string) {
   const [{ data: plots }, { data: milestones }, { data: updates }] = await Promise.all([
-    supabase.from('plots').select(PLOT_FIELDS).eq('project_id', projectId).order('plot_number'),
+    supabase.from('plots').select(PLOT_FIELDS).eq('project_id', projectId).eq('kind', 'plot').order('plot_number'),
     supabase.from('milestones').select('*').eq('project_id', projectId).order('sort_order'),
     supabase.from('construction_updates')
       .select('id, title, body, created_at, progress_percent, snapshot, milestone_id, photo_paths')

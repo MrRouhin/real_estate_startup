@@ -1,5 +1,6 @@
 import { FileText, FileUp } from 'lucide-react';
 import { requireStaff } from '@/lib/auth';
+import { NoProject } from '@/components/console/no-project';
 import { date } from '@/lib/format';
 import { PageHeader, Section } from '@/components/ui/bits';
 import { ActionForm, SubmitButton } from '@/components/ui/action-form';
@@ -9,6 +10,7 @@ export const metadata = { title: 'Documents' };
 
 export default async function Documents() {
   const { supabase, project } = await requireStaff();
+  if (!project) return <NoProject />;
   const [{ data: docs }, { data: bookings }] = await Promise.all([
     supabase.from('documents').select('*').eq('project_id', project!.id).order('created_at', { ascending: false }),
     supabase.from('bookings').select('id, plots(plot_number), profiles(full_name)').eq('org_id', project!.org_id).in('status', ['confirmed', 'registered', 'handed_over']),
@@ -17,7 +19,7 @@ export default async function Documents() {
   const label = Object.fromEntries((bookings || []).map((b) => [b.id, `${(b.plots as unknown as { plot_number: string }).plot_number} · ${(b.profiles as unknown as { full_name: string }).full_name}`]));
   return (
     <>
-      <PageHeader eyebrow={project!.name} title="Documents" sub="Public documents are visible to every visitor. Booking documents are visible only to that buyer." />
+      <PageHeader emoji="📄" eyebrow={project!.name} title="Documents" sub="Public documents are visible to every visitor. Booking documents are visible only to that buyer." />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <Section title={`${signed.length} files`}>
           <ul className="divide-y divide-line">

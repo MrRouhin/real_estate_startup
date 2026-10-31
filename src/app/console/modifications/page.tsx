@@ -20,7 +20,7 @@ export default async function Modifications() {
   const cName = Object.fromEntries((contractors || []).map((c) => [c.id, c.company_name]));
   return (
     <>
-      <PageHeader eyebrow="Sales" title="Buyer modification requests" sub="Buyer asks → you quote → buyer approves the cost → work is assigned. Nothing starts before the buyer approves." />
+      <PageHeader emoji="🛠️" eyebrow="Sales" title="Buyer modification requests" sub="Buyer asks → you quote → buyer approves the cost → work is assigned. Nothing starts before the buyer approves." />
       {(mods || []).length === 0 ? <Empty title="No requests yet" /> : (
         <div className="grid gap-4 md:grid-cols-2">
           {mods!.map((m) => (

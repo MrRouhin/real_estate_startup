@@ -5,6 +5,6 @@ export function resolveLink(link: string | null | undefined, role?: string | nul
   if (m) return `/me/bookings/${m[1]}`;
   const p = /^\/project\/([0-9a-f-]{36})/.exec(link);
   if (p) return `/project/${p[1]}`;
-  if (link === '/portal' && role && !['contractor', 'vendor', 'employee'].includes(role)) return '/me';
+  if (link === '/portal') return role === 'contractor' || role === 'vendor' || role === 'employee' ? '/' + role : '/me';
   return link;
 }

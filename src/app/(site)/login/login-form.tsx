@@ -3,17 +3,19 @@ import { useState } from 'react';
 import { Loader2, Mail, Smartphone } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/client';
 import { useToast } from '@/components/ui/toast';
+import { ROLES, type RoleKey } from '@/lib/roles';
 
 const DEMO = [
   ['Developer console', 'sales@demodevelopers.dev'],
-  ['Buyer', 'buyer@plotline.dev'],
+  ['Buyer', 'buyer@remmo.dev'],
   ['Contractor', 'contractor@abcconstructions.dev'],
   ['Vendor', 'vendor@xyzmaterials.dev'],
-  ['Site employee', 'employee@plotline.dev'],
+  ['Site employee', 'employee@remmo.dev'],
 ];
 
-export function LoginForm({ next, error, showDemo }: { next?: string; error?: string; showDemo: boolean }) {
-  const [tab, setTab] = useState<'phone' | 'email'>('email');
+export function LoginForm({ next, error, showDemo, role }: { next?: string; error?: string; showDemo: boolean; role?: RoleKey }) {
+  const R = role ? ROLES[role] : null;
+  const [tab, setTab] = useState<'phone' | 'email'>(R?.method ?? 'email');
   const [step, setStep] = useState<'start' | 'otp'>('start');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -22,10 +24,14 @@ export function LoginForm({ next, error, showDemo }: { next?: string; error?: st
   const [otp, setOtp] = useState('');
   const [signup, setSignup] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [info, setInfo] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(error === 'no-organization' ? 'Your login is not linked to a developer yet. Ask the platform admin to add you.' : null);
   const toast = useToast();
   const supabase = getBrowserClient();
-  const done = () => { window.location.href = '/auth/redirect' + (next ? `?next=${encodeURIComponent(next)}` : ''); };
+  const done = (fresh = false) => {
+    const to = fresh && R && role !== 'buyer' ? R.after : next;
+    window.location.href = '/auth/redirect' + (to ? `?next=${encodeURIComponent(to)}` : '');
+  };
   const e164 = '+91' + phone.replace(/\D/g, '').slice(-10);
 
   async function sendOtp(e: React.FormEvent) {
@@ -42,21 +48,28 @@ export function LoginForm({ next, error, showDemo }: { next?: string; error?: st
     const { error } = await supabase.auth.verifyOtp({ phone: e164, token: otp, type: 'sms' });
     setBusy(false);
     if (error) { setMsg('That code is wrong or expired. Try again.'); return; }
-    done();
+    done(!!name);
   }
   async function emailLogin(e: React.FormEvent) {
     e.preventDefault(); setMsg(null); setBusy(true);
-    const { error } = signup
-      ? await supabase.auth.signUp({ email, password, options: { data: { full_name: name } } })
-      : await supabase.auth.signInWithPassword({ email, password });
+    if (signup) {
+      const after = R && role !== 'buyer' ? R.after : next;
+      const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: name }, emailRedirectTo: `${window.location.origin}/auth/redirect${after ? `?next=${encodeURIComponent(after)}` : ''}` } });
+      setBusy(false);
+      if (error) { setMsg(error.message); return; }
+      if (!data.session) { setMsg(null); toast('Check your email and tap the link to finish signing up'); setInfo(`We sent a confirmation link to ${email}. Open it on this device to continue.`); return; }
+      done(true);
+      return;
+    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
     if (error) { setMsg(error.message === 'Invalid login credentials' ? 'Wrong email or password.' : error.message); return; }
-    done();
+    done(false);
   }
 
   return (
     <div className="card mx-auto w-full max-w-md p-6 shadow-[var(--shadow)]">
-      <h2 className="text-[22px] font-bold">{signup ? 'Create your account' : 'Sign in'}</h2>
+      <h2 className="text-[22px] font-bold">{signup ? 'Create your account' : R ? `Sign in as ${R.title.toLowerCase().replace(/s$/, '')}` : 'Sign in'}</h2>
       <div className="mt-4 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1" role="tablist">
         {([['phone', Smartphone, 'Mobile OTP'], ['email', Mail, 'Email']] as const).map(([k, I, l]) => (
           <button key={k} role="tab" aria-selected={tab === k} onClick={() => { setTab(k); setMsg(null); setStep('start'); }}
@@ -85,17 +98,18 @@ export function LoginForm({ next, error, showDemo }: { next?: string; error?: st
           <div><label className="label" htmlFor="em">Email</label><input id="em" type="email" className="input" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
           <div><label className="label" htmlFor="pw">Password</label><input id="pw" type="password" className="input" required minLength={8} autoComplete={signup ? 'new-password' : 'current-password'} value={password} onChange={(e) => setPassword(e.target.value)} /></div>
           <button className="btn btn-primary mt-1" disabled={busy}>{busy && <Loader2 className="size-4 animate-spin" />}{signup ? 'Create account' : 'Sign in'}</button>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setSignup((s) => !s)}>{signup ? 'I already have an account' : 'New buyer? Create an account'}</button>
+          <button type="button" className="btn btn-ghost btn-sm whitespace-normal" onClick={() => setSignup((s) => !s)}>{signup ? 'I already have an account' : R?.signup ?? 'New buyer? Create an account'}</button>
         </form>
       )}
+      {info && <p className="mt-3 rounded-xl bg-accent-soft px-3 py-2 text-[13px] text-accent">{info}</p>}
       {msg && <p role="alert" className="mt-3 rounded-xl bg-[color-mix(in_srgb,var(--bad)_10%,transparent)] px-3 py-2 text-[13px] text-bad">{msg}</p>}
       {showDemo && (
         <details className="mt-5 rounded-xl border border-dashed border-line p-3 text-[13px]" open>
-          <summary className="cursor-pointer font-semibold text-ink-2">Demo logins (password Plotline@2026)</summary>
+          <summary className="cursor-pointer font-semibold text-ink-2">Demo logins (password Remmo@2026)</summary>
           <div className="mt-2 grid gap-1.5">
-            {DEMO.map(([role, em]) => (
+            {DEMO.filter(([, em]) => !R || em === R.demo).map(([role, em]) => (
               <button key={em} type="button" className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-surface-2"
-                onClick={() => { setTab('email'); setSignup(false); setEmail(em!); setPassword('Plotline@2026'); }}>
+                onClick={() => { setTab('email'); setSignup(false); setEmail(em!); setPassword('Remmo@2026'); }}>
                 <span className="font-medium">{role}</span><span className="num truncate text-[12px] text-ink-3">{em}</span>
               </button>
             ))}

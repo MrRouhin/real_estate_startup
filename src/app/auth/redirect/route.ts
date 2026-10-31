@@ -11,8 +11,8 @@ export async function GET(req: NextRequest) {
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
   const home = homeFor(profile?.role);
   const next = url.searchParams.get('next');
-  const staffOnly = next?.startsWith('/console'), partnerOnly = next?.startsWith('/portal');
-  const allowed = next && next.startsWith('/') && !next.startsWith('//')
-    && (!staffOnly || home === '/console') && (!partnerOnly || home === '/portal');
+  // role areas only open for their own role; anything else falls back to the person's home
+  const area = ['/console', '/contractor', '/vendor', '/employee', '/portal'].find((a) => next === a || next?.startsWith(a + '/'));
+  const allowed = next && next.startsWith('/') && !next.startsWith('//') && (!area || area === home);
   return NextResponse.redirect(new URL(allowed ? next! : home, url));
 }

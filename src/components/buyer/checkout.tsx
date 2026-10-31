@@ -28,7 +28,7 @@ export async function startCheckout(order: Order, buyer: { name: string; phone: 
   await new Promise<void>((resolve, reject) => {
     const rz = new window.Razorpay!({
       key: order.keyId, order_id: order.orderId, amount: order.amount * 100, currency: 'INR',
-      name: 'Plotline', description: order.label,
+      name: 'REMMO', description: order.label,
       prefill: { name: buyer.name, contact: buyer.phone, email: buyer.email }, theme: { color: '#0e5d63' },
       handler: async (resp: Record<string, string>) => {
         const r = await fetch('/api/payments/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(resp) });

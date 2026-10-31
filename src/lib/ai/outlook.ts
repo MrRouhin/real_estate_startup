@@ -34,7 +34,7 @@ export function priceOutlook(price: number, history: HistoryPoint[], factors: Fa
   const own = cagr == null ? trend : Math.min(cagr, 0.12);
   const core = Math.max(0.02, Math.min(0.11, 0.35 * own + 0.65 * trend));
   const thisYear = now.getFullYear();
-  const infra = factors.filter((f) => f.kind !== 'trend').map((f) => {
+  const infra = factors.filter((f) => f.kind === 'infrastructure').map((f) => {
     const w = WEIGHT[f.status] ?? 0;
     const horizon = f.expected_year ? Math.max(1, f.expected_year - thisYear + 2) : 3;
     return { label: f.label, status: f.status, weight: w, contribution: (Number(f.impact_pct) / 100) * w, years: horizon, expected_year: f.expected_year, source: f.source };
@@ -78,7 +78,7 @@ export function propertyChecklist(input: {
       ? `${Math.round(h.actual)}% done vs ${Math.round(h.planned)}% planned by today${h.forecast ? `; development forecast to finish around ${new Date(h.forecast).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}` : ''}.`
       : 'No schedule data yet.' },
     { id: 'developer', label: 'Developer track record', ok: input.verifiedDeveloper ? (input.completedProjects > 0 ? true : null) : false, detail: input.verifiedDeveloper
-      ? input.completedProjects > 0 ? `${input.completedProjects} completed project${input.completedProjects > 1 ? 's' : ''} on Plotline.` : 'Verified developer; no completed projects on Plotline yet. Visit their earlier sites.'
+      ? input.completedProjects > 0 ? `${input.completedProjects} completed project${input.completedProjects > 1 ? 's' : ''} on REMMO.` : 'Verified developer; no completed projects on REMMO yet. Visit their earlier sites.'
       : 'Developer not verified yet.' },
     { id: 'demand', label: 'Demand in the project (resale ease)', ok: input.soldShare >= 0.3 ? true : input.soldShare >= 0.15 ? null : false, detail: `${Math.round(input.soldShare * 100)}% of plots already booked or sold.` },
     { id: 'value', label: 'Price vs the rest of the project', ok: input.plotRate <= input.avgRate * 1.05 ? true : null, detail: `₹${input.plotRate.toLocaleString('en-IN')}/sq ft vs project average ₹${Math.round(input.avgRate).toLocaleString('en-IN')}/sq ft${input.plotRate > input.avgRate * 1.05 ? ' (premium for location or corner)' : ''}.` },

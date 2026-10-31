@@ -8,7 +8,7 @@ export const STATE_COLOR: Record<string, string> = { done: 'var(--good)', ahead:
 export function AISource({ source, model }: { source: string; model?: string | null }) {
   const ai = source === 'ai';
   return (
-    <span title={ai ? `Written by AI${model ? ` (${model})` : ''} from the numbers below` : 'Built from the numbers by Plotline’s rules. Add an AI key for plain-language reports.'}
+    <span title={ai ? `Written by AI${model ? ` (${model})` : ''} from the numbers below` : 'Built from the numbers by REMMO’s rules. Add an AI key for plain-language reports.'}
       className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide"
       style={{ color: ai ? 'var(--accent)' : 'var(--ink-3)', background: ai ? 'var(--accent-soft)' : 'var(--surface-2)' }}>
       {ai ? <Sparkles className="size-3" /> : <Bot className="size-3" />}{ai ? 'AI' : 'Rules'}

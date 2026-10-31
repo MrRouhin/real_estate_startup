@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { AlertTriangle } from 'lucide-react';
 import { requireStaff } from '@/lib/auth';
+import { NoProject } from '@/components/console/no-project';
 import { date, inr, lakh, qty } from '@/lib/format';
 import { PageHeader, Pill, Section } from '@/components/ui/bits';
 import { AnimatedNumber, Item, Stagger } from '@/components/ui/motion';
@@ -19,6 +20,7 @@ const MOVE_TONE = { opening: 'muted', received: 'good', rejected: 'bad', issued:
 
 export default async function Materials() {
   const { supabase, orgId, project } = await requireStaff();
+  if (!project) return <NoProject />;
   const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
   const since30 = new Date(Date.now() - 30 * 86400000).toISOString();
   const [{ data: stock }, { data: reqs }, { data: moves }, { data: monthWaste }, { data: issued }, { data: vendors }, { data: org }] = await Promise.all([
@@ -40,7 +42,7 @@ export default async function Materials() {
   return (
     <>
       <LiveRefresh tables={['material_requests', 'deliveries']} filter={`org_id=eq.${orgId}`} />
-      <PageHeader eyebrow="Site" title="Materials and stores" sub="Stock is never typed in: it is worked out from every delivery, issue, use and wastage entry." />
+      <PageHeader emoji="🧱" eyebrow="Site" title="Materials and stores" sub="Stock is never typed in: it is worked out from every delivery, issue, use and wastage entry." />
       <Stagger className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Item className="card p-4"><div className="eyebrow">Stock value in store</div><div className="num mt-1 text-[24px] font-medium">{lakh(value)}</div></Item>
         <Item className="card p-4"><div className="eyebrow">Below reorder level</div><div className={'num mt-1 text-[24px] font-medium ' + (low.length ? 'text-bad' : '')}><AnimatedNumber value={low.length} /></div><div className="truncate text-[12px] text-ink-3">{low.map((m) => m.name).join(', ') || 'All healthy'}</div></Item>

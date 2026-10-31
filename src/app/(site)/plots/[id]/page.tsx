@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { AlertTriangle, ArrowLeft, Building2, TrendingUp } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { getSession } from '@/lib/auth';
@@ -29,6 +29,7 @@ export default async function PlotPage({ params, searchParams }: { params: Promi
   const supabase = await createClient();
   const { data: plot } = await supabase.from('plots').select('*').eq('id', id).maybeSingle();
   if (!plot) notFound();
+  if (plot.kind === 'flat') redirect(`/flats/${id}${error ? `?error=${encodeURIComponent(error)}` : ''}`);
   const [{ data: project }, { data: history }, site, { profile }] = await Promise.all([
     supabase.from('projects').select('*').eq('id', plot.project_id).single(),
     supabase.from('plot_price_history').select('price, changed_at').eq('plot_id', id).order('changed_at'),

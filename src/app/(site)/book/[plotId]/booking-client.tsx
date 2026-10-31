@@ -12,7 +12,7 @@ import { cap, inr, lakh } from '@/lib/format';
 type PlanStep = { label: string; pct: number; note?: string };
 
 export function BookingClient({ plot, project, developer, heldUntil, tokenPct, plan, kyc, userId, paymentsMode, buyer }: {
-  plot: { id: string; number: string; price: number; area: number; facing: string | null; dims: string | null };
+  plot: { id: string; number: string; price: number; area: number; facing: string | null; dims: string | null; kind: 'plot' | 'flat' };
   project: { name: string; slug: string }; developer: string; heldUntil: string; tokenPct: number; plan: PlanStep[];
   kyc: string; userId: string; paymentsMode: 'razorpay' | 'simulated'; buyer: { name: string; phone: string; email: string };
 }) {
@@ -50,7 +50,7 @@ export function BookingClient({ plot, project, developer, heldUntil, tokenPct, p
       const r = await fetch('/api/payments/create-order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plotId: plot.id }) });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || 'Could not start the payment.');
-      await startCheckout({ ...j, label: `Token for plot ${plot.number}` }, buyer, setSim);
+      await startCheckout({ ...j, label: `Booking amount for ${plot.kind} ${plot.number}` }, buyer, setSim);
     } catch (e) {
       toast((e as Error).message, 'error');
     } finally { setBusy(false); }
@@ -59,12 +59,12 @@ export function BookingClient({ plot, project, developer, heldUntil, tokenPct, p
   return (
     <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
       <div className="grid content-start gap-5">
-        <div><div className="eyebrow">{project.name}</div><h1 className="text-[28px] font-bold">Book plot {plot.number}</h1></div>
+        <div><div className="eyebrow">{project.name}</div><h1 className="text-[28px] font-bold">Book {plot.kind} {plot.number}</h1></div>
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
           className={'flex items-center justify-between gap-4 rounded-2xl border p-4 ' + (expired ? 'border-bad/40 bg-[color-mix(in_srgb,var(--bad)_8%,transparent)]' : 'border-held/50 bg-[color-mix(in_srgb,var(--st-held)_12%,var(--surface))]')}>
           <div className="flex items-center gap-3">
             <span className="grid size-10 place-items-center rounded-full bg-held/20 text-warn [animation:var(--animate-pulse-ring)]"><Timer className="size-5" /></span>
-            <div><div className="font-semibold">{expired ? 'Your hold ended' : `Plot ${plot.number} is held for you`}</div>
+            <div><div className="font-semibold">{expired ? 'Your hold ended' : `${plot.kind === 'flat' ? 'Flat' : 'Plot'} ${plot.number} is held for you`}</div>
               <div className="text-[12.5px] text-ink-2">{expired ? 'Go back and hold it again if it’s still free.' : 'No one else can book it until the timer ends.'}</div></div>
           </div>
           <div className="num text-[28px] font-semibold" role="timer" aria-live="off" suppressHydrationWarning>{`${mm}:${ss}`}</div>
@@ -107,7 +107,7 @@ export function BookingClient({ plot, project, developer, heldUntil, tokenPct, p
       <aside className="card grid content-start gap-4 p-5 lg:sticky lg:top-24">
         <h2 className="font-semibold">Summary</h2>
         <dl className="grid gap-2 text-[13.5px]">
-          {[['Plot', `${plot.number} · ${plot.area} sq ft`], ['Facing', cap(plot.facing)], ['Plot price', inr(plot.price)]].map(([k, v]) => (
+          {[[plot.kind === 'flat' ? 'Flat' : 'Plot', `${plot.number} · ${plot.area} sq ft${plot.kind === 'flat' ? ' super' : ''}`], [plot.kind === 'flat' ? 'Balcony faces' : 'Facing', cap(plot.facing)], ['Price', inr(plot.price)]].map(([k, v]) => (
             <div key={k} className="flex justify-between gap-3"><dt className="text-ink-2">{k}</dt><dd className="num font-medium">{v}</dd></div>
           ))}
           <div className="flex justify-between gap-3 border-t border-dashed border-line pt-2 text-[15px]"><dt className="font-semibold">Pay now</dt><dd className="num font-semibold text-accent">{inr(token)}</dd></div>

@@ -1,4 +1,5 @@
 import { requireStaff } from '@/lib/auth';
+import { NoProject } from '@/components/console/no-project';
 import { PageHeader } from '@/components/ui/bits';
 import { LiveRefresh } from '@/components/live-refresh';
 import { PlotTable } from './table';
@@ -11,6 +12,7 @@ export const metadata = { title: 'Plots and prices' };
 
 export default async function PlotsAdmin() {
   const { supabase, project } = await requireStaff();
+  if (!project) return <NoProject />;
   const [{ data: plots }, { data: bookings }, { data: events }, { data: priceIns }] = await Promise.all([
     supabase.from('plots').select('*').eq('project_id', project!.id).order('plot_number'),
     supabase.from('bookings').select('plot_id, buyer_id, status, profiles(full_name)').eq('org_id', project!.org_id).in('status', ['confirmed', 'registered', 'handed_over', 'pending_payment']),
@@ -30,7 +32,7 @@ export default async function PlotsAdmin() {
   return (
     <>
       <LiveRefresh tables={['plots']} filter={`project_id=eq.${project!.id}`} />
-      <PageHeader eyebrow={project!.name} title="Plots and prices" sub="Every price change is logged automatically and feeds the buyer’s price history chart. Booked plots keep the price they were booked at." />
+      <PageHeader emoji="🗺️" eyebrow={project!.name} title="Plots and prices" sub="Every price change is logged automatically and feeds the buyer’s price history chart. Booked plots keep the price they were booked at." />
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <Section title="Pricing suggestions" action={<RunAnalysisButton label="Refresh" className="btn btn-ghost btn-sm" />}>
           {(priceIns || []).length ? <div className="grid gap-3">{(priceIns as unknown as InsightView[]).map((i) => <InsightCard key={i.id} i={i} />)}</div>

@@ -1,8 +1,8 @@
-# Plotline
+# REMMO
 
-Real estate platform MVP for plotted developments: buyers pick a plot on a live 3D site, hold it for 15 minutes and pay the token online; the developer runs sales, CRM, construction, contractors, materials, vendors and site attendance from one console, on the same live data.
+**REMMO** (Real Estate Management and Marketing Organisation) is a real estate platform for plotted layouts and apartment towers. Buyers pick a flat or a plot in 3D, walk through the finished home before it is built, see how far their floor has been built today, hold it for 15 minutes and pay the booking amount online. The developer runs sales, CRM, towers, construction, contractors, materials, suppliers and site attendance from one console; contractors, suppliers and site workers each get their own workspace. Everyone works on the same live data.
 
-> "Plotline" is a working name. Change it in `src/components/logo.tsx`, `src/app/layout.tsx` and the header/footer copy.
+Live: https://real-estate-startup-rmgroups.vercel.app (add `remmo.vercel.app` under Vercel → Settings → Domains to use the new name).
 
 ![Overview](docs/screenshots/console-overview.png)
 
@@ -10,11 +10,23 @@ Real estate platform MVP for plotted developments: buyers pick a plot on a live 
 
 | Who | Where | What they can do |
 | --- | --- | --- |
-| Buyer | `/`, `/projects/…`, `/plots/…`, `/me` | Explore projects; filter plots in a **3D or 2D** site map; see price history and premiums; compare up to 3 plots; book a site visit (lands in the CRM); hold a plot for 15 min, upload ID, pay the token; pay later installments; download their documents; request changes and approve quotes; get notifications |
-| Developer staff | `/console` | Live overview (KPIs, sales funnel, collections, 3D site, activity feed); **CRM** pipeline with drag-and-drop, lead timeline, calls/WhatsApp log, site visits, follow-ups; plots and prices (inline edit, % revision, CSV import, block/release); bookings and collections; buyer modification quotes; **construction updates by milestone with 3D replay**; contractors with work packages and **material issued vs used vs wasted**; materials ledger with a **3D store yard**; vendor deliveries and inspection; employees and geofenced attendance; documents |
-| Contractor | `/portal` | Update progress on their work packages, request material, record usage and wastage, see their crew |
-| Vendor | `/portal` | Log deliveries (vehicle, invoice, photo), see inspection results |
-| Site employee | `/portal` | Selfie + GPS check-in checked against the site geofence, check-out, attendance history |
+| Buyer | `/`, `/projects/…`, `/flats/…`, `/plots/…`, `/me` | Explore apartment towers in 3D (live construction or availability), filter flats by BHK, floor, view and budget, see a stacking plan; **walk through any flat in 3D** (finished and furnished in three styles, or as it stands on site today), real sun for the flat’s facing and time of day; price build-up, construction-linked payment plan with expected dates, rental yield, price outlook; plots in a 3D/2D site map; AI matchmaker for flats and plots; hold, KYC, pay; profile and KYC page; payments, documents and notifications |
+| Developer staff | `/console` | Everything below plus: **project switcher**, **new-project wizard** (plotted layout, or towers with 2/3 BHK plans and auto-priced flats), **towers** (post slab/stage progress; buyers see their floor update), **approvals inbox** (RA bills, KYC, join requests, partner profiles), **people directory** with invite code, **letters** drafted from records (work orders, delay notices, crew compliance, purchase orders, appointments), **purchase orders** with supplier price comparison and payments, settings |
+| Contractor | `/contractor` | Dashboard; work packages with daily progress, plan vs actual; material requests and usage; **crew**: add workers, verify their profiles, assign tasks, attendance grid, mark a missed day, approve leave, wages; **running bills** (RA) through verified → approved → paid; letters to acknowledge; company profile (GST, PAN, licence, insurance, bank) |
+| Supplier | `/vendor` | Dashboard; **purchase orders**: accept with a delivery date, mark dispatched, log the delivery against the order; deliveries with invoice photos and inspection results; **payments** due and paid; **price list**; letters; company profile |
+| Site employee | `/employee` | Today: selfie + GPS check-in, tasks, safety tip; **5-step profile** (18+ only, ID and bank kept as last 4 digits); attendance calendar and wages; leave requests; **site ID card with QR**; letters |
+| New developer | `/start` | Register a company, become its owner and get an empty console; projects go public once the platform admin verifies the company |
+| Anyone joining a team | `/join` | Enter the developer’s invite code and ask to join as contractor, supplier or worker; the developer approves |
+
+Each role signs in from its own page (`/login` → pick a role). The demo company is labelled *Sample project* on the public site, so real projects can sit next to it.
+
+### Flats and the 3D tour
+A flat is a row in `plots` with `kind = 'flat'`, so holds, bookings, payments, price history and the CRM work unchanged. `towers` hold floors, slabs cast and stage progress (foundation, structure, masonry, MEP, finishing, facade); every floor’s state is derived bottom-up. `unit_types` carry the floor plan as data (rooms, doors, windows, furniture in metres), and everything is built from it:
+
+- `src/lib/flats/layout.ts` – walls with openings cut out, walkable space, viewpoints, mirroring; `nav.ts` – A* paths for click-to-walk
+- `src/components/three/flat/flat-scene.tsx` – the tour: Street View–style walking (drag to look, tap the floor, arrow keys), dollhouse view, sun position from date, time and facing, sky and stars, the view from the flat’s floor, ambient occlusion and bloom, today-on-site stages (slab, blockwork, conduits, ghost outlines of future walls)
+- `src/components/three/tower-scene.tsx` – towers with each floor as built, cranes on rising towers, flats clickable and coloured by status
+- `src/lib/flats/tower.ts` – floor stages, pace and forecasts, construction-linked plan status, price build-up, rental yield
 
 ### AI layer
 The database computes the numbers; the AI only explains them, and **people approve every change**. Everything works without an AI key (built-in rules write plainer text); add one for plain-language reports, photo and invoice reading, multilingual chat and personalised messages.
@@ -87,21 +99,23 @@ Migration 0010 schedules the every-minute hold cleanup with pg_cron automaticall
 
 ### 4. Seed the demo and start
 ```bash
-npm run seed       # creates logins, a project with 27 plots, bookings, CRM, contractors, stock…
+npm run seed       # logins, a plotted layout (27 plots), an apartment project (2 towers, 112 flats), bookings, CRM, partners, bills, orders…
 npm run dev        # http://localhost:3000
 ```
 Run `npm run seed -- --reset` any time to wipe the demo organization and start fresh.
 
-### Demo logins (password `Plotline@2026`)
+### Demo logins (password `Remmo@2026`)
 
 | Role | Email |
 | --- | --- |
 | Developer console | `sales@demodevelopers.dev` |
-| Buyer | `buyer@plotline.dev` (or phone `+91 99999 00001` with your test OTP) |
+| Buyer | `buyer@remmo.dev` (or phone `+91 99999 00001` with your test OTP); owns flat A-1203 |
 | Contractor | `contractor@abcconstructions.dev` |
-| Vendor | `vendor@xyzmaterials.dev` |
-| Site employee | `employee@plotline.dev` |
-| Platform admin | `admin@plotline.dev` |
+| Supplier | `vendor@xyzmaterials.dev` |
+| Site employee | `employee@remmo.dev` |
+| Platform admin | `admin@remmo.dev` |
+
+Invite code for the demo company: `GVDEMO26`.
 
 The login page lists these. Set `NEXT_PUBLIC_SHOW_DEMO_LOGINS=false` to hide them.
 
@@ -116,11 +130,11 @@ The amount always comes from the database. The webhook is the source of truth an
 
 GitHub stores the code; it can't run it (GitHub Pages only serves static files, and this app needs a server and a database). **Supabase** runs the database and **Vercel** runs the website; Vercel redeploys by itself on every push to `main`.
 
-**The database is already live**: Supabase project `plotline` (Mumbai) has the migrations, the demo data, the documents and the every-minute hold cleanup. The public connection settings for it are in `.env.production`, so the site needs only one secret.
+**The database is already live**: Supabase project `plotline` (Mumbai; the internal project name predates the REMMO name) has the migrations, the demo data, the documents and the every-minute hold cleanup. The public connection settings for it are in `.env.production`, so the site needs only one secret.
 
 1. **Deploy the website**: [vercel.com/new](https://vercel.com/new) → *Continue with GitHub* → **Import** `real_estate_startup` → **Deploy**. Nothing to fill in. In about two minutes you get a link like `https://real-estate-startup.vercel.app`.
 2. **Add the one secret** (needed for token payments, ID upload and linking portal logins): Supabase → Project Settings → **API Keys** → copy the **secret** key (or the legacy `service_role` key). In Vercel → your project → Settings → **Environment Variables** add `SUPABASE_SERVICE_ROLE_KEY` = that key → Deployments → ⋯ → **Redeploy**.
-3. **Tell Supabase the site's address**: Supabase → Authentication → **URL Configuration** → Site URL = your Vercel link (used in sign-up and password emails).
+3. **Tell Supabase the site's address**: Supabase → Authentication → **URL Configuration** → Site URL = your Vercel link, and add `https://<your-domain>/**` under Redirect URLs (used by sign-up confirmation emails).
 
 Then sign in with any demo login above.
 
@@ -177,10 +191,10 @@ scripts/seed.mjs       demo data for any Supabase project
 
 Run the SQL tests on any Postgres 15+:
 ```bash
-createdb plotline_test
-psql -d plotline_test -f supabase/tests/local_supabase_stub.sql
-for f in supabase/migrations/*.sql; do psql -v ON_ERROR_STOP=1 -d plotline_test -f "$f"; done
-for t in booking_flow_test content_test operations_crm_test ai_layer_test; do psql -d plotline_test -f supabase/tests/$t.sql; done
+createdb remmo_test
+psql -d remmo_test -f supabase/tests/local_supabase_stub.sql
+for f in supabase/migrations/*.sql; do psql -v ON_ERROR_STOP=1 -d remmo_test -f "$f"; done
+for t in booking_flow_test content_test operations_crm_test ai_layer_test flats_people_test workspaces_test real_users_test; do psql -d remmo_test -f supabase/tests/$t.sql; done
 ```
 Every check prints `t`.
 

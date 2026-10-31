@@ -35,7 +35,7 @@ export default async function Employees() {
   return (
     <>
       <LiveRefresh tables={['attendance']} filter={`org_id=eq.${orgId}`} />
-      <PageHeader eyebrow="Site" title="Employees and attendance" sub="Workers check in from their phone with a selfie. Check-ins farther than the site geofence are flagged." />
+      <PageHeader emoji="🦺" eyebrow="Site" title="Employees and attendance" sub="Workers check in from their phone with a selfie. Check-ins farther than the site geofence are flagged." />
       <Stagger className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Item className="card p-4"><div className="eyebrow">On site today</div><div className="num mt-1 text-[26px] font-medium"><AnimatedNumber value={present.length} /><span className="text-[15px] text-ink-3"> / {(emps || []).length}</span></div></Item>
         <Item className="card p-4"><div className="eyebrow">Outside geofence</div><div className={'num mt-1 text-[26px] font-medium ' + (outside.length ? 'text-bad' : '')}><AnimatedNumber value={outside.length} /></div></Item>

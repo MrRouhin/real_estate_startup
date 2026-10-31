@@ -5,6 +5,8 @@ import { loadSite } from '@/lib/queries';
 import { asLayout, STATUS_COLOR, STATUS_LABEL } from '@/lib/site';
 import { dateTime, lakh, todayIST } from '@/lib/format';
 import { SiteView } from '@/components/three/site-view';
+import { TowerView } from '@/components/three/tower-view';
+import { loadApartments } from '@/lib/flats/queries';
 import { Bars, Funnel } from '@/components/charts/bars';
 import { ActivityFeed } from '@/components/console/feed';
 import { AnimatedNumber, Item, Stagger } from '@/components/ui/motion';
@@ -18,10 +20,10 @@ export const metadata = { title: 'Overview' };
 
 export default async function Overview() {
   const { supabase, orgId, project, profile } = await requireStaff();
-  if (!project) return <Empty title="No project yet">Ask the platform admin to create your first project.</Empty>;
+  if (!project) return <Empty emoji="✨" title="Add your first project" href="/console/projects/new" cta="Start a project">A plotted layout or apartment towers. Inventory, prices and the payment plan are generated for you.</Empty>;
   const since = new Date(); since.setMonth(since.getMonth() - 7); since.setDate(1);
   const in7 = new Date(Date.now() + 7 * 86400000).toISOString();
-  const [stats, balances, leads, pays, feed, visits, followUps, emps, att, deliveries, requests, stock, site, insights] = await Promise.all([
+  const [stats, balances, leads, pays, feed, visits, followUps, emps, att, deliveries, requests, stock, site, apts, insights] = await Promise.all([
     supabase.from('project_stats').select('*').eq('project_id', project.id).single(),
     supabase.from('booking_balances').select('balance, status').eq('org_id', orgId).in('status', ['confirmed', 'registered', 'handed_over']),
     supabase.from('leads').select('stage').eq('org_id', orgId),
@@ -35,6 +37,7 @@ export default async function Overview() {
     supabase.from('material_requests').select('id', { count: 'exact', head: true }).eq('org_id', orgId).in('status', ['requested', 'approved']),
     supabase.from('material_stock').select('name, in_store, reorder_level, unit').eq('project_id', project.id),
     loadSite(supabase, project.id),
+    project.kind === 'apartments' ? loadApartments(supabase, project.id) : Promise.resolve(null),
     supabase.from('ai_insights').select('id, kind, severity, title, body, source, created_at').eq('project_id', project.id).eq('status', 'open').order('created_at', { ascending: false }).limit(60),
   ]);
   const brief = (insights.data || []).find((i) => i.kind === 'project_brief');
@@ -55,9 +58,9 @@ export default async function Overview() {
   return (
     <>
       <LiveRefresh tables={['activity_log', 'plots', 'payments', 'leads']} filter={`org_id=eq.${orgId}`} />
-      <PageHeader eyebrow={new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata' })}
+      <PageHeader emoji="📊" eyebrow={new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata' })}
         title={`Good ${hourIST < 12 ? 'morning' : hourIST < 17 ? 'afternoon' : 'evening'}, ${profile.full_name?.split(' ')[0] || 'team'}`}
-        sub={<>{project.name} is <b className="num text-ink">{Math.round(Number(project.progress_percent))}%</b> developed with <b className="num text-ink">{s.available}</b> plots on sale.</>} />
+        sub={<>{project.name} is <b className="num text-ink">{Math.round(Number(project.progress_percent))}%</b> {project.kind === 'apartments' ? 'built' : 'developed'} with <b className="num text-ink">{s.available}</b> {project.kind === 'apartments' ? 'flats' : 'plots'} on sale.</>} />
 
       <section className="card relative overflow-hidden p-4 sm:p-5" style={{ background: 'linear-gradient(135deg, color-mix(in srgb, var(--accent) 9%, var(--surface)), var(--surface) 60%)' }}>
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -99,7 +102,8 @@ export default async function Overview() {
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
         <div className="card overflow-hidden">
-          <SiteView plots={site.plots} layout={asLayout(project.layout)} progress={site.progress} height={380} autoRotate />
+          {apts ? <TowerView towers={apts.towers} flats={apts.flats} types={apts.types} height={380} initialMode="status" />
+            : <SiteView plots={site.plots} layout={asLayout(project.layout)} progress={site.progress} height={380} autoRotate />}
           <div className="border-t border-line p-4">
             <div className="flex h-3 gap-0.5 overflow-hidden rounded-full" role="img" aria-label="Inventory by status">
               {statusSegs.filter(([, n]) => n > 0).map(([st, n]) => <span key={st} style={{ flex: n, background: STATUS_COLOR[st] }} title={`${STATUS_LABEL[st]}: ${n}`} />)}

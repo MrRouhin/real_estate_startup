@@ -6,10 +6,10 @@ import * as THREE from 'three';
 
 type Props = {
   text: string; sub?: string; position: [number, number, number];
-  height?: number; bg?: string; fg?: string; subFg?: string; mono?: boolean; plain?: boolean;
+  height?: number; bg?: string; fg?: string; subFg?: string; mono?: boolean; plain?: boolean; depthTest?: boolean; onClick?: () => void;
 };
 
-export function Label({ text, sub, position, height = 0.34, bg = '#12201c', fg = '#ffffff', subFg = 'rgba(255,255,255,.72)', mono = false, plain = false }: Props) {
+export function Label({ text, sub, position, height = 0.34, bg = '#12201c', fg = '#ffffff', subFg = 'rgba(255,255,255,.72)', mono = false, plain = false, depthTest = false, onClick }: Props) {
   const { texture, aspect } = useMemo(() => {
     const scale = 3;
     const font = `${mono ? '600' : '650'} ${26 * scale}px ${mono ? '"JetBrains Mono", ui-monospace, monospace' : '"Public Sans Variable", "Public Sans", system-ui, sans-serif'}`;
@@ -35,8 +35,11 @@ export function Label({ text, sub, position, height = 0.34, bg = '#12201c', fg =
   }, [text, sub, bg, fg, subFg, mono, plain]);
   useEffect(() => () => texture.dispose(), [texture]);
   return (
-    <sprite position={position} scale={[height * aspect, height, 1]} renderOrder={10}>
-      <spriteMaterial map={texture} transparent depthTest={false} depthWrite={false} />
+    <sprite position={position} scale={[height * aspect, height, 1]} renderOrder={10}
+      onClick={onClick ? (e) => { e.stopPropagation(); onClick(); } : undefined}
+      onPointerOver={onClick ? () => { document.body.style.cursor = 'pointer'; } : undefined}
+      onPointerOut={onClick ? () => { document.body.style.cursor = ''; } : undefined}>
+      <spriteMaterial map={texture} transparent depthTest={depthTest} depthWrite={false} />
     </sprite>
   );
 }

@@ -5,7 +5,39 @@ export type Database = {
   
   "public": {
           Tables: {
-            "activity_log": {
+            "access_requests": {
+                  Row: {
+                    "categories": (string)[],"company_name": string | null,"created_at": string,"decided_at": string | null,"decided_by": string | null,"email": string | null,"full_name": string,"gst_number": string | null,"id": string,"message": string | null,"note": string | null,"org_id": string,"phone": string | null,"role": string,"status": string,"trade": string | null,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "categories"?: (string)[],"company_name"?: string | null,"created_at"?: string,"decided_at"?: string | null,"decided_by"?: string | null,"email"?: string | null,"full_name": string,"gst_number"?: string | null,"id"?: string,"message"?: string | null,"note"?: string | null,"org_id": string,"phone"?: string | null,"role": string,"status"?: string,"trade"?: string | null,"user_id"?: string
+                  }
+                  Update: {
+                    "categories"?: (string)[],"company_name"?: string | null,"created_at"?: string,"decided_at"?: string | null,"decided_by"?: string | null,"email"?: string | null,"full_name"?: string,"gst_number"?: string | null,"id"?: string,"message"?: string | null,"note"?: string | null,"org_id"?: string,"phone"?: string | null,"role"?: string,"status"?: string,"trade"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "access_requests_decided_by_fkey"
+      columns: ["decided_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "access_requests_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "access_requests_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"activity_log": {
                   Row: {
                     "actor_id": string | null,"created_at": string,"id": number,"kind": string,"message": string,"org_id": string,"project_id": string | null
                   }
@@ -237,14 +269,14 @@ isOneToOne: false
                   ]
                 },"construction_updates": {
                   Row: {
-                    "body": string | null,"created_at": string,"created_by": string | null,"id": string,"milestone_id": string | null,"milestone_progress": number | null,"org_id": string,"photo_paths": (string)[],"progress_percent": number | null,"project_id": string,"snapshot": Json | null,"title": string
+                    "body": string | null,"created_at": string,"created_by": string | null,"id": string,"milestone_id": string | null,"milestone_progress": number | null,"org_id": string,"photo_paths": (string)[],"progress_percent": number | null,"project_id": string,"snapshot": Json | null,"title": string,"tower_id": string | null,"tower_snapshot": Json | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "body"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"milestone_id"?: string | null,"milestone_progress"?: number | null,"org_id": string,"photo_paths"?: (string)[],"progress_percent"?: number | null,"project_id": string,"snapshot"?: Json | null,"title": string
+                    "body"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"milestone_id"?: string | null,"milestone_progress"?: number | null,"org_id": string,"photo_paths"?: (string)[],"progress_percent"?: number | null,"project_id": string,"snapshot"?: Json | null,"title": string,"tower_id"?: string | null,"tower_snapshot"?: Json | null
                   }
                   Update: {
-                    "body"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"milestone_id"?: string | null,"milestone_progress"?: number | null,"org_id"?: string,"photo_paths"?: (string)[],"progress_percent"?: number | null,"project_id"?: string,"snapshot"?: Json | null,"title"?: string
+                    "body"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"milestone_id"?: string | null,"milestone_progress"?: number | null,"org_id"?: string,"photo_paths"?: (string)[],"progress_percent"?: number | null,"project_id"?: string,"snapshot"?: Json | null,"title"?: string,"tower_id"?: string | null,"tower_snapshot"?: Json | null
                   }
                   Relationships: [
                     {
@@ -283,18 +315,86 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "projects"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "construction_updates_tower_id_fkey"
+      columns: ["tower_id"]
+isOneToOne: false
+      referencedRelation: "towers"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"contractor_bills": {
+                  Row: {
+                    "contractor_id": string,"created_at": string,"created_by": string | null,"decided_at": string | null,"decided_by": string | null,"decision_note": string | null,"gross_amount": number,"gst_pct": number,"id": string,"invoice_number": string | null,"net_payable": number | null,"note": string | null,"org_id": string,"paid_at": string | null,"payment_ref": string | null,"period_from": string | null,"period_to": string | null,"progress_claimed": number | null,"project_id": string,"retention_pct": number,"seq": number,"status": string,"tds_pct": number,"work_package_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "contractor_id": string,"created_at"?: string,"created_by"?: string | null,"decided_at"?: string | null,"decided_by"?: string | null,"decision_note"?: string | null,"gross_amount": number,"gst_pct"?: number,"id"?: string,"invoice_number"?: string | null,"net_payable"?: never,"note"?: string | null,"org_id": string,"paid_at"?: string | null,"payment_ref"?: string | null,"period_from"?: string | null,"period_to"?: string | null,"progress_claimed"?: number | null,"project_id": string,"retention_pct"?: number,"seq"?: never,"status"?: string,"tds_pct"?: number,"work_package_id"?: string | null
+                  }
+                  Update: {
+                    "contractor_id"?: string,"created_at"?: string,"created_by"?: string | null,"decided_at"?: string | null,"decided_by"?: string | null,"decision_note"?: string | null,"gross_amount"?: number,"gst_pct"?: number,"id"?: string,"invoice_number"?: string | null,"net_payable"?: never,"note"?: string | null,"org_id"?: string,"paid_at"?: string | null,"payment_ref"?: string | null,"period_from"?: string | null,"period_to"?: string | null,"progress_claimed"?: number | null,"project_id"?: string,"retention_pct"?: number,"seq"?: never,"status"?: string,"tds_pct"?: number,"work_package_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "contractor_bills_contractor_id_fkey"
+      columns: ["contractor_id"]
+isOneToOne: false
+      referencedRelation: "contractors"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "contractor_bills_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "contractor_bills_decided_by_fkey"
+      columns: ["decided_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "contractor_bills_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "contractor_bills_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "material_stock"
+      referencedColumns: ["project_id"]
+    },{
+      foreignKeyName: "contractor_bills_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "project_stats"
+      referencedColumns: ["project_id"]
+    },{
+      foreignKeyName: "contractor_bills_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "contractor_bills_work_package_id_fkey"
+      columns: ["work_package_id"]
+isOneToOne: false
+      referencedRelation: "work_packages"
+      referencedColumns: ["id"]
     }
                   ]
                 },"contractors": {
                   Row: {
-                    "address": string | null,"company_name": string,"contact_person": string | null,"contract_type": string,"created_at": string,"email": string | null,"gst_number": string | null,"id": string,"org_id": string,"phone": string | null,"rating": number | null,"status": string,"trade": Database["public"]['Enums']["trade"],"user_id": string | null
+                    "address": string | null,"bank_ifsc": string | null,"bank_last4": string | null,"company_name": string,"contact_person": string | null,"contract_type": string,"created_at": string,"email": string | null,"gst_number": string | null,"id": string,"insurance_policy": string | null,"insurance_valid_till": string | null,"license_number": string | null,"org_id": string,"pan": string | null,"phone": string | null,"profile_note": string | null,"profile_status": string,"profile_updated_at": string | null,"rating": number | null,"status": string,"team_size": number | null,"trade": Database["public"]['Enums']["trade"],"upi_id": string | null,"user_id": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "address"?: string | null,"company_name": string,"contact_person"?: string | null,"contract_type"?: string,"created_at"?: string,"email"?: string | null,"gst_number"?: string | null,"id"?: string,"org_id": string,"phone"?: string | null,"rating"?: number | null,"status"?: string,"trade"?: Database["public"]['Enums']["trade"],"user_id"?: string | null
+                    "address"?: string | null,"bank_ifsc"?: string | null,"bank_last4"?: string | null,"company_name": string,"contact_person"?: string | null,"contract_type"?: string,"created_at"?: string,"email"?: string | null,"gst_number"?: string | null,"id"?: string,"insurance_policy"?: string | null,"insurance_valid_till"?: string | null,"license_number"?: string | null,"org_id": string,"pan"?: string | null,"phone"?: string | null,"profile_note"?: string | null,"profile_status"?: string,"profile_updated_at"?: string | null,"rating"?: number | null,"status"?: string,"team_size"?: number | null,"trade"?: Database["public"]['Enums']["trade"],"upi_id"?: string | null,"user_id"?: string | null
                   }
                   Update: {
-                    "address"?: string | null,"company_name"?: string,"contact_person"?: string | null,"contract_type"?: string,"created_at"?: string,"email"?: string | null,"gst_number"?: string | null,"id"?: string,"org_id"?: string,"phone"?: string | null,"rating"?: number | null,"status"?: string,"trade"?: Database["public"]['Enums']["trade"],"user_id"?: string | null
+                    "address"?: string | null,"bank_ifsc"?: string | null,"bank_last4"?: string | null,"company_name"?: string,"contact_person"?: string | null,"contract_type"?: string,"created_at"?: string,"email"?: string | null,"gst_number"?: string | null,"id"?: string,"insurance_policy"?: string | null,"insurance_valid_till"?: string | null,"license_number"?: string | null,"org_id"?: string,"pan"?: string | null,"phone"?: string | null,"profile_note"?: string | null,"profile_status"?: string,"profile_updated_at"?: string | null,"rating"?: number | null,"status"?: string,"team_size"?: number | null,"trade"?: Database["public"]['Enums']["trade"],"upi_id"?: string | null,"user_id"?: string | null
                   }
                   Relationships: [
                     {
@@ -311,16 +411,78 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
-                },"deliveries": {
+                },"crew_tasks": {
                   Row: {
-                    "accepted_qty": number | null,"created_at": string,"created_by": string | null,"delivered_at": string,"id": string,"inspected_at": string | null,"inspected_by": string | null,"inspection_note": string | null,"invoice_number": string | null,"invoice_path": string | null,"location": string | null,"material_id": string,"org_id": string,"photo_paths": (string)[],"project_id": string,"quantity": number,"seq": number,"status": Database["public"]['Enums']["delivery_status"],"unit_cost": number | null,"vehicle_number": string | null,"vendor_id": string
+                    "contractor_id": string | null,"created_at": string,"created_by": string | null,"details": string | null,"done_at": string | null,"done_note": string | null,"due_date": string | null,"employee_id": string | null,"id": string,"org_id": string,"priority": string,"project_id": string | null,"status": string,"title": string,"work_package_id": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "accepted_qty"?: number | null,"created_at"?: string,"created_by"?: string | null,"delivered_at"?: string,"id"?: string,"inspected_at"?: string | null,"inspected_by"?: string | null,"inspection_note"?: string | null,"invoice_number"?: string | null,"invoice_path"?: string | null,"location"?: string | null,"material_id": string,"org_id": string,"photo_paths"?: (string)[],"project_id": string,"quantity": number,"seq"?: never,"status"?: Database["public"]['Enums']["delivery_status"],"unit_cost"?: number | null,"vehicle_number"?: string | null,"vendor_id": string
+                    "contractor_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"details"?: string | null,"done_at"?: string | null,"done_note"?: string | null,"due_date"?: string | null,"employee_id"?: string | null,"id"?: string,"org_id": string,"priority"?: string,"project_id"?: string | null,"status"?: string,"title": string,"work_package_id"?: string | null
                   }
                   Update: {
-                    "accepted_qty"?: number | null,"created_at"?: string,"created_by"?: string | null,"delivered_at"?: string,"id"?: string,"inspected_at"?: string | null,"inspected_by"?: string | null,"inspection_note"?: string | null,"invoice_number"?: string | null,"invoice_path"?: string | null,"location"?: string | null,"material_id"?: string,"org_id"?: string,"photo_paths"?: (string)[],"project_id"?: string,"quantity"?: number,"seq"?: never,"status"?: Database["public"]['Enums']["delivery_status"],"unit_cost"?: number | null,"vehicle_number"?: string | null,"vendor_id"?: string
+                    "contractor_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"details"?: string | null,"done_at"?: string | null,"done_note"?: string | null,"due_date"?: string | null,"employee_id"?: string | null,"id"?: string,"org_id"?: string,"priority"?: string,"project_id"?: string | null,"status"?: string,"title"?: string,"work_package_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "crew_tasks_contractor_id_fkey"
+      columns: ["contractor_id"]
+isOneToOne: false
+      referencedRelation: "contractors"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "crew_tasks_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "crew_tasks_employee_id_fkey"
+      columns: ["employee_id"]
+isOneToOne: false
+      referencedRelation: "employees"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "crew_tasks_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "crew_tasks_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "material_stock"
+      referencedColumns: ["project_id"]
+    },{
+      foreignKeyName: "crew_tasks_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "project_stats"
+      referencedColumns: ["project_id"]
+    },{
+      foreignKeyName: "crew_tasks_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "crew_tasks_work_package_id_fkey"
+      columns: ["work_package_id"]
+isOneToOne: false
+      referencedRelation: "work_packages"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"deliveries": {
+                  Row: {
+                    "accepted_qty": number | null,"created_at": string,"created_by": string | null,"delivered_at": string,"id": string,"inspected_at": string | null,"inspected_by": string | null,"inspection_note": string | null,"invoice_number": string | null,"invoice_path": string | null,"location": string | null,"material_id": string,"org_id": string,"paid_at": string | null,"payment_ref": string | null,"photo_paths": (string)[],"po_id": string | null,"project_id": string,"quantity": number,"seq": number,"status": Database["public"]['Enums']["delivery_status"],"unit_cost": number | null,"vehicle_number": string | null,"vendor_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "accepted_qty"?: number | null,"created_at"?: string,"created_by"?: string | null,"delivered_at"?: string,"id"?: string,"inspected_at"?: string | null,"inspected_by"?: string | null,"inspection_note"?: string | null,"invoice_number"?: string | null,"invoice_path"?: string | null,"location"?: string | null,"material_id": string,"org_id": string,"paid_at"?: string | null,"payment_ref"?: string | null,"photo_paths"?: (string)[],"po_id"?: string | null,"project_id": string,"quantity": number,"seq"?: never,"status"?: Database["public"]['Enums']["delivery_status"],"unit_cost"?: number | null,"vehicle_number"?: string | null,"vendor_id": string
+                  }
+                  Update: {
+                    "accepted_qty"?: number | null,"created_at"?: string,"created_by"?: string | null,"delivered_at"?: string,"id"?: string,"inspected_at"?: string | null,"inspected_by"?: string | null,"inspection_note"?: string | null,"invoice_number"?: string | null,"invoice_path"?: string | null,"location"?: string | null,"material_id"?: string,"org_id"?: string,"paid_at"?: string | null,"payment_ref"?: string | null,"photo_paths"?: (string)[],"po_id"?: string | null,"project_id"?: string,"quantity"?: number,"seq"?: never,"status"?: Database["public"]['Enums']["delivery_status"],"unit_cost"?: number | null,"vehicle_number"?: string | null,"vendor_id"?: string
                   }
                   Relationships: [
                     {
@@ -340,6 +502,12 @@ isOneToOne: false
       columns: ["material_id"]
 isOneToOne: false
       referencedRelation: "materials"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "deliveries_po_id_fkey"
+      columns: ["po_id"]
+isOneToOne: false
+      referencedRelation: "purchase_orders"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "deliveries_project_id_org_id_fkey"
@@ -468,6 +636,38 @@ isOneToOne: false
     },{
       foreignKeyName: "documents_uploaded_by_fkey"
       columns: ["uploaded_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"employee_profiles": {
+                  Row: {
+                    "address": string | null,"bank_ifsc": string | null,"bank_last4": string | null,"blood_group": string | null,"city": string | null,"date_of_birth": string | null,"emergency_name": string | null,"emergency_phone": string | null,"emergency_relation": string | null,"employee_id": string,"experience_years": number | null,"home_state": string | null,"id_last4": string | null,"id_type": string | null,"languages": (string)[],"org_id": string,"photo_path": string | null,"review_note": string | null,"safety_trained": boolean,"safety_training_date": string | null,"skills": (string)[],"status": string,"submitted_at": string | null,"trade": string | null,"updated_at": string,"upi_id": string | null,"verified_at": string | null,"verified_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "address"?: string | null,"bank_ifsc"?: string | null,"bank_last4"?: string | null,"blood_group"?: string | null,"city"?: string | null,"date_of_birth"?: string | null,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"employee_id": string,"experience_years"?: number | null,"home_state"?: string | null,"id_last4"?: string | null,"id_type"?: string | null,"languages"?: (string)[],"org_id": string,"photo_path"?: string | null,"review_note"?: string | null,"safety_trained"?: boolean,"safety_training_date"?: string | null,"skills"?: (string)[],"status"?: string,"submitted_at"?: string | null,"trade"?: string | null,"updated_at"?: string,"upi_id"?: string | null,"verified_at"?: string | null,"verified_by"?: string | null
+                  }
+                  Update: {
+                    "address"?: string | null,"bank_ifsc"?: string | null,"bank_last4"?: string | null,"blood_group"?: string | null,"city"?: string | null,"date_of_birth"?: string | null,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"employee_id"?: string,"experience_years"?: number | null,"home_state"?: string | null,"id_last4"?: string | null,"id_type"?: string | null,"languages"?: (string)[],"org_id"?: string,"photo_path"?: string | null,"review_note"?: string | null,"safety_trained"?: boolean,"safety_training_date"?: string | null,"skills"?: (string)[],"status"?: string,"submitted_at"?: string | null,"trade"?: string | null,"updated_at"?: string,"upi_id"?: string | null,"verified_at"?: string | null,"verified_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "employee_profiles_employee_id_fkey"
+      columns: ["employee_id"]
+isOneToOne: true
+      referencedRelation: "employees"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "employee_profiles_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "employee_profiles_verified_by_fkey"
+      columns: ["verified_by"]
 isOneToOne: false
       referencedRelation: "profiles"
       referencedColumns: ["id"]
@@ -605,16 +805,92 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"market_factors": {
+                },"leave_requests": {
                   Row: {
-                    "expected_year": number | null,"id": string,"impact_pct": number,"kind": string,"label": string,"org_id": string,"project_id": string,"sort_order": number,"source": string | null,"status": string
+                    "created_at": string,"decided_at": string | null,"decided_by": string | null,"decision_note": string | null,"employee_id": string,"from_date": string,"id": string,"kind": string,"org_id": string,"reason": string | null,"status": string,"to_date": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "expected_year"?: number | null,"id"?: string,"impact_pct"?: number,"kind"?: string,"label": string,"org_id": string,"project_id": string,"sort_order"?: number,"source"?: string | null,"status"?: string
+                    "created_at"?: string,"decided_at"?: string | null,"decided_by"?: string | null,"decision_note"?: string | null,"employee_id": string,"from_date": string,"id"?: string,"kind"?: string,"org_id": string,"reason"?: string | null,"status"?: string,"to_date": string
                   }
                   Update: {
-                    "expected_year"?: number | null,"id"?: string,"impact_pct"?: number,"kind"?: string,"label"?: string,"org_id"?: string,"project_id"?: string,"sort_order"?: number,"source"?: string | null,"status"?: string
+                    "created_at"?: string,"decided_at"?: string | null,"decided_by"?: string | null,"decision_note"?: string | null,"employee_id"?: string,"from_date"?: string,"id"?: string,"kind"?: string,"org_id"?: string,"reason"?: string | null,"status"?: string,"to_date"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "leave_requests_decided_by_fkey"
+      columns: ["decided_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "leave_requests_employee_id_fkey"
+      columns: ["employee_id"]
+isOneToOne: false
+      referencedRelation: "employees"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "leave_requests_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"letters": {
+                  Row: {
+                    "ack_note": string | null,"acknowledged_at": string | null,"body": string,"created_at": string,"created_by": string | null,"data": NonNullable<Json>,"id": string,"issued_at": string | null,"issued_by": string | null,"kind": string,"org_id": string,"project_id": string | null,"recipient_id": string,"recipient_type": string,"seq": number,"source": string,"status": string,"subject": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "ack_note"?: string | null,"acknowledged_at"?: string | null,"body": string,"created_at"?: string,"created_by"?: string | null,"data"?: NonNullable<Json>,"id"?: string,"issued_at"?: string | null,"issued_by"?: string | null,"kind": string,"org_id": string,"project_id"?: string | null,"recipient_id": string,"recipient_type": string,"seq"?: never,"source"?: string,"status"?: string,"subject": string
+                  }
+                  Update: {
+                    "ack_note"?: string | null,"acknowledged_at"?: string | null,"body"?: string,"created_at"?: string,"created_by"?: string | null,"data"?: NonNullable<Json>,"id"?: string,"issued_at"?: string | null,"issued_by"?: string | null,"kind"?: string,"org_id"?: string,"project_id"?: string | null,"recipient_id"?: string,"recipient_type"?: string,"seq"?: never,"source"?: string,"status"?: string,"subject"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "letters_issued_by_fkey"
+      columns: ["issued_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "letters_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "letters_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "material_stock"
+      referencedColumns: ["project_id"]
+    },{
+      foreignKeyName: "letters_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "project_stats"
+      referencedColumns: ["project_id"]
+    },{
+      foreignKeyName: "letters_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"market_factors": {
+                  Row: {
+                    "expected_year": number | null,"id": string,"impact_pct": number,"kind": string,"label": string,"org_id": string,"project_id": string,"sort_order": number,"source": string | null,"status": string,"value": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "expected_year"?: number | null,"id"?: string,"impact_pct"?: number,"kind"?: string,"label": string,"org_id": string,"project_id": string,"sort_order"?: number,"source"?: string | null,"status"?: string,"value"?: number | null
+                  }
+                  Update: {
+                    "expected_year"?: number | null,"id"?: string,"impact_pct"?: number,"kind"?: string,"label"?: string,"org_id"?: string,"project_id"?: string,"sort_order"?: number,"source"?: string | null,"status"?: string,"value"?: number | null
                   }
                   Relationships: [
                     {
@@ -837,14 +1113,14 @@ isOneToOne: false
                   ]
                 },"organizations": {
                   Row: {
-                    "created_at": string,"email": string | null,"gst_number": string | null,"id": string,"is_verified": boolean,"name": string,"payment_plan": NonNullable<Json>,"phone": string | null,"token_percent": number
+                    "address": string | null,"created_at": string,"email": string | null,"gst_number": string | null,"id": string,"invite_code": string | null,"is_demo": boolean,"is_verified": boolean,"name": string,"payment_plan": NonNullable<Json>,"phone": string | null,"signatory_name": string | null,"signatory_title": string | null,"token_percent": number,"website": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"email"?: string | null,"gst_number"?: string | null,"id"?: string,"is_verified"?: boolean,"name": string,"payment_plan"?: NonNullable<Json>,"phone"?: string | null,"token_percent"?: number
+                    "address"?: string | null,"created_at"?: string,"email"?: string | null,"gst_number"?: string | null,"id"?: string,"invite_code"?: string | null,"is_demo"?: boolean,"is_verified"?: boolean,"name": string,"payment_plan"?: NonNullable<Json>,"phone"?: string | null,"signatory_name"?: string | null,"signatory_title"?: string | null,"token_percent"?: number,"website"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"email"?: string | null,"gst_number"?: string | null,"id"?: string,"is_verified"?: boolean,"name"?: string,"payment_plan"?: NonNullable<Json>,"phone"?: string | null,"token_percent"?: number
+                    "address"?: string | null,"created_at"?: string,"email"?: string | null,"gst_number"?: string | null,"id"?: string,"invite_code"?: string | null,"is_demo"?: boolean,"is_verified"?: boolean,"name"?: string,"payment_plan"?: NonNullable<Json>,"phone"?: string | null,"signatory_name"?: string | null,"signatory_title"?: string | null,"token_percent"?: number,"website"?: string | null
                   }
                   Relationships: [
                     
@@ -997,14 +1273,14 @@ isOneToOne: false
                   ]
                 },"plots": {
                   Row: {
-                    "area_sqft": number,"created_at": string,"dimensions": string | null,"facing": Database["public"]['Enums']["facing"] | null,"held_by": string | null,"held_until": string | null,"id": string,"is_corner": boolean,"org_id": string,"plot_number": string,"price": number,"project_id": string,"shape_path": string | null,"status": Database["public"]['Enums']["plot_status"],"svg_shape_id": string | null
+                    "area_sqft": number,"created_at": string,"dimensions": string | null,"facing": Database["public"]['Enums']["facing"] | null,"floor": number | null,"held_by": string | null,"held_until": string | null,"id": string,"is_corner": boolean,"kind": string,"mirror": boolean,"org_id": string,"plot_number": string,"price": number,"project_id": string,"shape_path": string | null,"stack": number | null,"status": Database["public"]['Enums']["plot_status"],"svg_shape_id": string | null,"tower_id": string | null,"unit_type_id": string | null,"view": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "area_sqft": number,"created_at"?: string,"dimensions"?: string | null,"facing"?: Database["public"]['Enums']["facing"] | null,"held_by"?: string | null,"held_until"?: string | null,"id"?: string,"is_corner"?: boolean,"org_id": string,"plot_number": string,"price": number,"project_id": string,"shape_path"?: string | null,"status"?: Database["public"]['Enums']["plot_status"],"svg_shape_id"?: string | null
+                    "area_sqft": number,"created_at"?: string,"dimensions"?: string | null,"facing"?: Database["public"]['Enums']["facing"] | null,"floor"?: number | null,"held_by"?: string | null,"held_until"?: string | null,"id"?: string,"is_corner"?: boolean,"kind"?: string,"mirror"?: boolean,"org_id": string,"plot_number": string,"price": number,"project_id": string,"shape_path"?: string | null,"stack"?: number | null,"status"?: Database["public"]['Enums']["plot_status"],"svg_shape_id"?: string | null,"tower_id"?: string | null,"unit_type_id"?: string | null,"view"?: string | null
                   }
                   Update: {
-                    "area_sqft"?: number,"created_at"?: string,"dimensions"?: string | null,"facing"?: Database["public"]['Enums']["facing"] | null,"held_by"?: string | null,"held_until"?: string | null,"id"?: string,"is_corner"?: boolean,"org_id"?: string,"plot_number"?: string,"price"?: number,"project_id"?: string,"shape_path"?: string | null,"status"?: Database["public"]['Enums']["plot_status"],"svg_shape_id"?: string | null
+                    "area_sqft"?: number,"created_at"?: string,"dimensions"?: string | null,"facing"?: Database["public"]['Enums']["facing"] | null,"floor"?: number | null,"held_by"?: string | null,"held_until"?: string | null,"id"?: string,"is_corner"?: boolean,"kind"?: string,"mirror"?: boolean,"org_id"?: string,"plot_number"?: string,"price"?: number,"project_id"?: string,"shape_path"?: string | null,"stack"?: number | null,"status"?: Database["public"]['Enums']["plot_status"],"svg_shape_id"?: string | null,"tower_id"?: string | null,"unit_type_id"?: string | null,"view"?: string | null
                   }
                   Relationships: [
                     {
@@ -1025,32 +1301,44 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "projects"
       referencedColumns: ["id","org_id"]
+    },{
+      foreignKeyName: "plots_tower_id_fkey"
+      columns: ["tower_id"]
+isOneToOne: false
+      referencedRelation: "towers"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "plots_unit_type_id_fkey"
+      columns: ["unit_type_id"]
+isOneToOne: false
+      referencedRelation: "unit_types"
+      referencedColumns: ["id"]
     }
                   ]
                 },"profiles": {
                   Row: {
-                    "created_at": string,"email": string | null,"full_name": string | null,"id": string,"kyc_status": string,"phone": string | null,"role": Database["public"]['Enums']["app_role"]
+                    "address": string | null,"city": string | null,"created_at": string,"date_of_birth": string | null,"email": string | null,"full_name": string | null,"id": string,"id_last4": string | null,"id_type": string | null,"kyc_doc_path": string | null,"kyc_note": string | null,"kyc_status": string,"kyc_submitted_at": string | null,"kyc_verified_at": string | null,"occupation": string | null,"phone": string | null,"pincode": string | null,"preferred_language": string | null,"role": Database["public"]['Enums']["app_role"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"email"?: string | null,"full_name"?: string | null,"id": string,"kyc_status"?: string,"phone"?: string | null,"role"?: Database["public"]['Enums']["app_role"]
+                    "address"?: string | null,"city"?: string | null,"created_at"?: string,"date_of_birth"?: string | null,"email"?: string | null,"full_name"?: string | null,"id": string,"id_last4"?: string | null,"id_type"?: string | null,"kyc_doc_path"?: string | null,"kyc_note"?: string | null,"kyc_status"?: string,"kyc_submitted_at"?: string | null,"kyc_verified_at"?: string | null,"occupation"?: string | null,"phone"?: string | null,"pincode"?: string | null,"preferred_language"?: string | null,"role"?: Database["public"]['Enums']["app_role"]
                   }
                   Update: {
-                    "created_at"?: string,"email"?: string | null,"full_name"?: string | null,"id"?: string,"kyc_status"?: string,"phone"?: string | null,"role"?: Database["public"]['Enums']["app_role"]
+                    "address"?: string | null,"city"?: string | null,"created_at"?: string,"date_of_birth"?: string | null,"email"?: string | null,"full_name"?: string | null,"id"?: string,"id_last4"?: string | null,"id_type"?: string | null,"kyc_doc_path"?: string | null,"kyc_note"?: string | null,"kyc_status"?: string,"kyc_submitted_at"?: string | null,"kyc_verified_at"?: string | null,"occupation"?: string | null,"phone"?: string | null,"pincode"?: string | null,"preferred_language"?: string | null,"role"?: Database["public"]['Enums']["app_role"]
                   }
                   Relationships: [
                     
                   ]
                 },"projects": {
                   Row: {
-                    "address": string | null,"ai_summary": Json | null,"city": string | null,"cover_image_path": string | null,"created_at": string,"description": string | null,"geofence_m": number,"id": string,"is_published": boolean,"layout": Json | null,"layout_svg_path": string | null,"layout_viewbox": string | null,"name": string,"org_id": string,"progress_percent": number,"rera_number": string | null,"site_lat": number | null,"site_lng": number | null,"slug": string,"status": Database["public"]['Enums']["project_status"]
+                    "address": string | null,"ai_summary": Json | null,"amenities": (string)[],"city": string | null,"cover_image_path": string | null,"created_at": string,"description": string | null,"geofence_m": number,"id": string,"is_published": boolean,"kind": string,"layout": Json | null,"layout_svg_path": string | null,"layout_viewbox": string | null,"name": string,"org_id": string,"payment_plan": Json | null,"possession_date": string | null,"pricing": Json | null,"progress_percent": number,"rera_number": string | null,"site_lat": number | null,"site_lng": number | null,"slug": string,"status": Database["public"]['Enums']["project_status"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "address"?: string | null,"ai_summary"?: Json | null,"city"?: string | null,"cover_image_path"?: string | null,"created_at"?: string,"description"?: string | null,"geofence_m"?: number,"id"?: string,"is_published"?: boolean,"layout"?: Json | null,"layout_svg_path"?: string | null,"layout_viewbox"?: string | null,"name": string,"org_id": string,"progress_percent"?: number,"rera_number"?: string | null,"site_lat"?: number | null,"site_lng"?: number | null,"slug": string,"status"?: Database["public"]['Enums']["project_status"]
+                    "address"?: string | null,"ai_summary"?: Json | null,"amenities"?: (string)[],"city"?: string | null,"cover_image_path"?: string | null,"created_at"?: string,"description"?: string | null,"geofence_m"?: number,"id"?: string,"is_published"?: boolean,"kind"?: string,"layout"?: Json | null,"layout_svg_path"?: string | null,"layout_viewbox"?: string | null,"name": string,"org_id": string,"payment_plan"?: Json | null,"possession_date"?: string | null,"pricing"?: Json | null,"progress_percent"?: number,"rera_number"?: string | null,"site_lat"?: number | null,"site_lng"?: number | null,"slug": string,"status"?: Database["public"]['Enums']["project_status"]
                   }
                   Update: {
-                    "address"?: string | null,"ai_summary"?: Json | null,"city"?: string | null,"cover_image_path"?: string | null,"created_at"?: string,"description"?: string | null,"geofence_m"?: number,"id"?: string,"is_published"?: boolean,"layout"?: Json | null,"layout_svg_path"?: string | null,"layout_viewbox"?: string | null,"name"?: string,"org_id"?: string,"progress_percent"?: number,"rera_number"?: string | null,"site_lat"?: number | null,"site_lng"?: number | null,"slug"?: string,"status"?: Database["public"]['Enums']["project_status"]
+                    "address"?: string | null,"ai_summary"?: Json | null,"amenities"?: (string)[],"city"?: string | null,"cover_image_path"?: string | null,"created_at"?: string,"description"?: string | null,"geofence_m"?: number,"id"?: string,"is_published"?: boolean,"kind"?: string,"layout"?: Json | null,"layout_svg_path"?: string | null,"layout_viewbox"?: string | null,"name"?: string,"org_id"?: string,"payment_plan"?: Json | null,"possession_date"?: string | null,"pricing"?: Json | null,"progress_percent"?: number,"rera_number"?: string | null,"site_lat"?: number | null,"site_lng"?: number | null,"slug"?: string,"status"?: Database["public"]['Enums']["project_status"]
                   }
                   Relationships: [
                     {
@@ -1058,6 +1346,62 @@ isOneToOne: false
       columns: ["org_id"]
 isOneToOne: false
       referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"purchase_orders": {
+                  Row: {
+                    "accepted_at": string | null,"created_at": string,"created_by": string | null,"delivery_location": string | null,"dispatched_at": string | null,"gst_pct": number,"id": string,"items": NonNullable<Json>,"material_request_id": string | null,"org_id": string,"project_id": string,"promised_date": string | null,"required_by": string | null,"seq": number,"status": string,"subtotal": number,"terms": string | null,"total": number | null,"updated_at": string,"vehicle_number": string | null,"vendor_id": string,"vendor_note": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "accepted_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"delivery_location"?: string | null,"dispatched_at"?: string | null,"gst_pct"?: number,"id"?: string,"items"?: NonNullable<Json>,"material_request_id"?: string | null,"org_id": string,"project_id": string,"promised_date"?: string | null,"required_by"?: string | null,"seq"?: never,"status"?: string,"subtotal"?: number,"terms"?: string | null,"total"?: never,"updated_at"?: string,"vehicle_number"?: string | null,"vendor_id": string,"vendor_note"?: string | null
+                  }
+                  Update: {
+                    "accepted_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"delivery_location"?: string | null,"dispatched_at"?: string | null,"gst_pct"?: number,"id"?: string,"items"?: NonNullable<Json>,"material_request_id"?: string | null,"org_id"?: string,"project_id"?: string,"promised_date"?: string | null,"required_by"?: string | null,"seq"?: never,"status"?: string,"subtotal"?: number,"terms"?: string | null,"total"?: never,"updated_at"?: string,"vehicle_number"?: string | null,"vendor_id"?: string,"vendor_note"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "purchase_orders_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "purchase_orders_material_request_id_fkey"
+      columns: ["material_request_id"]
+isOneToOne: false
+      referencedRelation: "material_requests"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "purchase_orders_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "purchase_orders_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "material_stock"
+      referencedColumns: ["project_id"]
+    },{
+      foreignKeyName: "purchase_orders_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "project_stats"
+      referencedColumns: ["project_id"]
+    },{
+      foreignKeyName: "purchase_orders_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "purchase_orders_vendor_id_fkey"
+      columns: ["vendor_id"]
+isOneToOne: false
+      referencedRelation: "vendors"
       referencedColumns: ["id"]
     }
                   ]
@@ -1187,16 +1531,106 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"vendors": {
+                },"towers": {
                   Row: {
-                    "address": string | null,"categories": (string)[],"company_name": string,"contact_person": string | null,"created_at": string,"email": string | null,"gst_number": string | null,"id": string,"org_id": string,"phone": string | null,"rating": number | null,"user_id": string | null
+                    "code": string,"expected_completion": string | null,"floor_height_m": number,"floors": number,"id": string,"name": string,"org_id": string,"position": NonNullable<Json>,"project_id": string,"slabs_cast": number,"sort_order": number,"stages": NonNullable<Json>,"units_per_floor": number,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "address"?: string | null,"categories"?: (string)[],"company_name": string,"contact_person"?: string | null,"created_at"?: string,"email"?: string | null,"gst_number"?: string | null,"id"?: string,"org_id": string,"phone"?: string | null,"rating"?: number | null,"user_id"?: string | null
+                    "code": string,"expected_completion"?: string | null,"floor_height_m"?: number,"floors": number,"id"?: string,"name": string,"org_id": string,"position"?: NonNullable<Json>,"project_id": string,"slabs_cast"?: number,"sort_order"?: number,"stages"?: NonNullable<Json>,"units_per_floor": number,"updated_at"?: string
                   }
                   Update: {
-                    "address"?: string | null,"categories"?: (string)[],"company_name"?: string,"contact_person"?: string | null,"created_at"?: string,"email"?: string | null,"gst_number"?: string | null,"id"?: string,"org_id"?: string,"phone"?: string | null,"rating"?: number | null,"user_id"?: string | null
+                    "code"?: string,"expected_completion"?: string | null,"floor_height_m"?: number,"floors"?: number,"id"?: string,"name"?: string,"org_id"?: string,"position"?: NonNullable<Json>,"project_id"?: string,"slabs_cast"?: number,"sort_order"?: number,"stages"?: NonNullable<Json>,"units_per_floor"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "towers_project_id_org_id_fkey"
+      columns: ["project_id","org_id"]
+isOneToOne: false
+      referencedRelation: "project_stats"
+      referencedColumns: ["project_id","org_id"]
+    },{
+      foreignKeyName: "towers_project_id_org_id_fkey"
+      columns: ["project_id","org_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id","org_id"]
+    }
+                  ]
+                },"unit_types": {
+                  Row: {
+                    "balconies": number,"base_rate": number,"bathrooms": number,"bedrooms": number,"builtup_sqft": number | null,"carpet_sqft": number,"code": string,"description": string | null,"id": string,"layout": NonNullable<Json>,"name": string,"org_id": string,"project_id": string,"super_sqft": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "balconies"?: number,"base_rate": number,"bathrooms": number,"bedrooms": number,"builtup_sqft"?: number | null,"carpet_sqft": number,"code": string,"description"?: string | null,"id"?: string,"layout": NonNullable<Json>,"name": string,"org_id": string,"project_id": string,"super_sqft": number
+                  }
+                  Update: {
+                    "balconies"?: number,"base_rate"?: number,"bathrooms"?: number,"bedrooms"?: number,"builtup_sqft"?: number | null,"carpet_sqft"?: number,"code"?: string,"description"?: string | null,"id"?: string,"layout"?: NonNullable<Json>,"name"?: string,"org_id"?: string,"project_id"?: string,"super_sqft"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "unit_types_project_id_org_id_fkey"
+      columns: ["project_id","org_id"]
+isOneToOne: false
+      referencedRelation: "project_stats"
+      referencedColumns: ["project_id","org_id"]
+    },{
+      foreignKeyName: "unit_types_project_id_org_id_fkey"
+      columns: ["project_id","org_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id","org_id"]
+    }
+                  ]
+                },"vendor_catalog": {
+                  Row: {
+                    "brand": string | null,"id": string,"in_stock": boolean,"lead_days": number | null,"material_id": string | null,"min_order": number | null,"name": string,"org_id": string,"rate": number,"unit": string,"updated_at": string,"vendor_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "brand"?: string | null,"id"?: string,"in_stock"?: boolean,"lead_days"?: number | null,"material_id"?: string | null,"min_order"?: number | null,"name": string,"org_id": string,"rate": number,"unit": string,"updated_at"?: string,"vendor_id": string
+                  }
+                  Update: {
+                    "brand"?: string | null,"id"?: string,"in_stock"?: boolean,"lead_days"?: number | null,"material_id"?: string | null,"min_order"?: number | null,"name"?: string,"org_id"?: string,"rate"?: number,"unit"?: string,"updated_at"?: string,"vendor_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "vendor_catalog_material_id_fkey"
+      columns: ["material_id"]
+isOneToOne: false
+      referencedRelation: "material_stock"
+      referencedColumns: ["material_id"]
+    },{
+      foreignKeyName: "vendor_catalog_material_id_fkey"
+      columns: ["material_id"]
+isOneToOne: false
+      referencedRelation: "materials"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "vendor_catalog_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "vendor_catalog_vendor_id_fkey"
+      columns: ["vendor_id"]
+isOneToOne: false
+      referencedRelation: "vendors"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"vendors": {
+                  Row: {
+                    "address": string | null,"bank_ifsc": string | null,"bank_last4": string | null,"categories": (string)[],"company_name": string,"contact_person": string | null,"created_at": string,"delivery_regions": string | null,"email": string | null,"gst_number": string | null,"id": string,"org_id": string,"pan": string | null,"phone": string | null,"profile_note": string | null,"profile_status": string,"profile_updated_at": string | null,"rating": number | null,"upi_id": string | null,"user_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "address"?: string | null,"bank_ifsc"?: string | null,"bank_last4"?: string | null,"categories"?: (string)[],"company_name": string,"contact_person"?: string | null,"created_at"?: string,"delivery_regions"?: string | null,"email"?: string | null,"gst_number"?: string | null,"id"?: string,"org_id": string,"pan"?: string | null,"phone"?: string | null,"profile_note"?: string | null,"profile_status"?: string,"profile_updated_at"?: string | null,"rating"?: number | null,"upi_id"?: string | null,"user_id"?: string | null
+                  }
+                  Update: {
+                    "address"?: string | null,"bank_ifsc"?: string | null,"bank_last4"?: string | null,"categories"?: (string)[],"company_name"?: string,"contact_person"?: string | null,"created_at"?: string,"delivery_regions"?: string | null,"email"?: string | null,"gst_number"?: string | null,"id"?: string,"org_id"?: string,"pan"?: string | null,"phone"?: string | null,"profile_note"?: string | null,"profile_status"?: string,"profile_updated_at"?: string | null,"rating"?: number | null,"upi_id"?: string | null,"user_id"?: string | null
                   }
                   Relationships: [
                     {
@@ -1448,7 +1882,10 @@ isOneToOne: false
 "location": string | null,
 "material_id": string,
 "org_id": string,
+"paid_at": string | null,
+"payment_ref": string | null,
 "photo_paths": (string)[],
+"po_id": string | null,
 "project_id": string,
 "quantity": number,
 "seq": number,
@@ -1460,6 +1897,57 @@ isOneToOne: false
                           SetofOptions: {
         from: "*"
         to: "deliveries"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"acknowledge_letter":
+{ Args: { "p_letter": string,"p_note"?: string }; Returns: {
+              "ack_note": string | null,
+"acknowledged_at": string | null,
+"body": string,
+"created_at": string,
+"created_by": string | null,
+"data": NonNullable<Json>,
+"id": string,
+"issued_at": string | null,
+"issued_by": string | null,
+"kind": string,
+"org_id": string,
+"project_id": string | null,
+"recipient_id": string,
+"recipient_type": string,
+"seq": number,
+"source": string,
+"status": string,
+"subject": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "letters"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"bill_number":
+{ Args: { "p_created": string,"p_seq": number }; Returns: string
+                           },
+"cancel_my_leave":
+{ Args: { "p_leave": string }; Returns: {
+              "created_at": string,
+"decided_at": string | null,
+"decided_by": string | null,
+"decision_note": string | null,
+"employee_id": string,
+"from_date": string,
+"id": string,
+"kind": string,
+"org_id": string,
+"reason": string | null,
+"status": string,
+"to_date": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "leave_requests"
         isOneToOne: true
         isSetofReturn: false
       } },
@@ -1507,9 +1995,158 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"contractor_assign_task":
+{ Args: { "p": Json }; Returns: {
+              "contractor_id": string | null,
+"created_at": string,
+"created_by": string | null,
+"details": string | null,
+"done_at": string | null,
+"done_note": string | null,
+"due_date": string | null,
+"employee_id": string | null,
+"id": string,
+"org_id": string,
+"priority": string,
+"project_id": string | null,
+"status": string,
+"title": string,
+"work_package_id": string | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "crew_tasks"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"contractor_save_employee":
+{ Args: { "p": Json }; Returns: {
+              "active": boolean,
+"contractor_id": string | null,
+"created_at": string,
+"daily_wage": number | null,
+"employee_code": string,
+"full_name": string,
+"id": string,
+"org_id": string,
+"phone": string | null,
+"project_id": string | null,
+"role_title": string | null,
+"user_id": string | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "employees"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"create_my_organization":
+{ Args: { "p": Json }; Returns: {
+              "address": string | null,
+"created_at": string,
+"email": string | null,
+"gst_number": string | null,
+"id": string,
+"invite_code": string | null,
+"is_demo": boolean,
+"is_verified": boolean,
+"name": string,
+"payment_plan": NonNullable<Json>,
+"phone": string | null,
+"signatory_name": string | null,
+"signatory_title": string | null,
+"token_percent": number,
+"website": string | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "organizations"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "dearmor":
 { Args: { "": string }; Returns: string
                            },
+"decide_access_request":
+{ Args: { "p_approve": boolean,"p_contractor"?: string,"p_note"?: string,"p_request": string }; Returns: {
+              "categories": (string)[],
+"company_name": string | null,
+"created_at": string,
+"decided_at": string | null,
+"decided_by": string | null,
+"email": string | null,
+"full_name": string,
+"gst_number": string | null,
+"id": string,
+"message": string | null,
+"note": string | null,
+"org_id": string,
+"phone": string | null,
+"role": string,
+"status": string,
+"trade": string | null,
+"user_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "access_requests"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"decide_contractor_bill":
+{ Args: { "p_bill": string,"p_note"?: string,"p_ref"?: string,"p_status": string }; Returns: {
+              "contractor_id": string,
+"created_at": string,
+"created_by": string | null,
+"decided_at": string | null,
+"decided_by": string | null,
+"decision_note": string | null,
+"gross_amount": number,
+"gst_pct": number,
+"id": string,
+"invoice_number": string | null,
+"net_payable": number | null,
+"note": string | null,
+"org_id": string,
+"paid_at": string | null,
+"payment_ref": string | null,
+"period_from": string | null,
+"period_to": string | null,
+"progress_claimed": number | null,
+"project_id": string,
+"retention_pct": number,
+"seq": number,
+"status": string,
+"tds_pct": number,
+"work_package_id": string | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "contractor_bills"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"decide_leave":
+{ Args: { "p_approve": boolean,"p_leave": string,"p_note"?: string }; Returns: {
+              "created_at": string,
+"decided_at": string | null,
+"decided_by": string | null,
+"decision_note": string | null,
+"employee_id": string,
+"from_date": string,
+"id": string,
+"kind": string,
+"org_id": string,
+"reason": string | null,
+"status": string,
+"to_date": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "leave_requests"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "decide_material_request":
 { Args: { "p_approve": boolean,"p_request": string }; Returns: {
               "contractor_id": string,
@@ -1535,6 +2172,9 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"flatify_text":
+{ Args: { "t": string }; Returns: string
+                           },
 "fmt_money":
 { Args: { "n": number }; Returns: string
                            },
@@ -1550,17 +2190,24 @@ isOneToOne: false
 "created_at": string,
 "dimensions": string | null,
 "facing": Database["public"]['Enums']["facing"] | null,
+"floor": number | null,
 "held_by": string | null,
 "held_until": string | null,
 "id": string,
 "is_corner": boolean,
+"kind": string,
+"mirror": boolean,
 "org_id": string,
 "plot_number": string,
 "price": number,
 "project_id": string,
 "shape_path": string | null,
+"stack": number | null,
 "status": Database["public"]['Enums']["plot_status"],
-"svg_shape_id": string | null
+"svg_shape_id": string | null,
+"tower_id": string | null,
+"unit_type_id": string | null,
+"view": string | null
             }
                           SetofOptions: {
         from: "*"
@@ -1568,6 +2215,9 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"in_my_crew":
+{ Args: { "p_employee": string }; Returns: boolean
+                           },
 "is_admin":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
@@ -1580,6 +2230,33 @@ isOneToOne: false
 "is_org_partner":
 { Args: { "p_org": string }; Returns: boolean
                            },
+"issue_letter":
+{ Args: { "p_letter": string }; Returns: {
+              "ack_note": string | null,
+"acknowledged_at": string | null,
+"body": string,
+"created_at": string,
+"created_by": string | null,
+"data": NonNullable<Json>,
+"id": string,
+"issued_at": string | null,
+"issued_by": string | null,
+"kind": string,
+"org_id": string,
+"project_id": string | null,
+"recipient_id": string,
+"recipient_type": string,
+"seq": number,
+"source": string,
+"status": string,
+"subject": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "letters"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "issue_material":
 { Args: { "p_request": string }; Returns: {
               "contractor_id": string,
@@ -1605,9 +2282,51 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"letter_number":
+{ Args: { "p_created": string,"p_seq": number }; Returns: string
+                           },
+"letter_visible":
+{ Args: { "p_recipient": string,"p_type": string }; Returns: boolean
+                           },
 "log_activity":
 { Args: { "p_kind": string,"p_message": string,"p_org": string,"p_project": string }; Returns: undefined
                            },
+"mark_crew_attendance":
+{ Args: { "p_date": string,"p_employee": string,"p_note"?: string,"p_present": boolean }; Returns: string
+                           },
+"mark_delivery_paid":
+{ Args: { "p_delivery": string,"p_ref": string }; Returns: {
+              "accepted_qty": number | null,
+"created_at": string,
+"created_by": string | null,
+"delivered_at": string,
+"id": string,
+"inspected_at": string | null,
+"inspected_by": string | null,
+"inspection_note": string | null,
+"invoice_number": string | null,
+"invoice_path": string | null,
+"location": string | null,
+"material_id": string,
+"org_id": string,
+"paid_at": string | null,
+"payment_ref": string | null,
+"photo_paths": (string)[],
+"po_id": string | null,
+"project_id": string,
+"quantity": number,
+"seq": number,
+"status": Database["public"]['Enums']["delivery_status"],
+"unit_cost": number | null,
+"vehicle_number": string | null,
+"vendor_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "deliveries"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "mark_payment_paid":
 { Args: { "p_order_id": string,"p_payment_id": string }; Returns: {
               "buyer_id": string,
@@ -1630,6 +2349,9 @@ isOneToOne: false
 "my_contractor_id":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"my_crew_contractor":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
 "my_employee_id":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
@@ -1642,8 +2364,16 @@ isOneToOne: false
 "notify_user":
 { Args: { "p_body": string,"p_link": string,"p_title": string,"p_user": string }; Returns: undefined
                            },
+"org_by_invite":
+{ Args: { "p_code": string }; Returns: {
+              "id": string,"name": string
+            }[]
+                           },
 "pgp_armor_headers":
 { Args: { "": string }; Returns: Record<string, unknown>[]
+                           },
+"po_number":
+{ Args: { "p_created": string,"p_seq": number }; Returns: string
                            },
 "project_is_public":
 { Args: { "p_project": string }; Returns: boolean
@@ -1657,6 +2387,27 @@ isOneToOne: false
 "release_expired_holds":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
+"request_leave":
+{ Args: { "p_from": string,"p_kind": string,"p_reason"?: string,"p_to": string }; Returns: {
+              "created_at": string,
+"decided_at": string | null,
+"decided_by": string | null,
+"decision_note": string | null,
+"employee_id": string,
+"from_date": string,
+"id": string,
+"kind": string,
+"org_id": string,
+"reason": string | null,
+"status": string,
+"to_date": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "leave_requests"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "respond_to_quote":
 { Args: { "p_approve": boolean,"p_request": string }; Returns: {
               "booking_id": string,
@@ -1678,12 +2429,123 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"review_employee_profile":
+{ Args: { "p_employee": string,"p_note"?: string,"p_status": string }; Returns: {
+              "address": string | null,
+"bank_ifsc": string | null,
+"bank_last4": string | null,
+"blood_group": string | null,
+"city": string | null,
+"date_of_birth": string | null,
+"emergency_name": string | null,
+"emergency_phone": string | null,
+"emergency_relation": string | null,
+"employee_id": string,
+"experience_years": number | null,
+"home_state": string | null,
+"id_last4": string | null,
+"id_type": string | null,
+"languages": (string)[],
+"org_id": string,
+"photo_path": string | null,
+"review_note": string | null,
+"safety_trained": boolean,
+"safety_training_date": string | null,
+"skills": (string)[],
+"status": string,
+"submitted_at": string | null,
+"trade": string | null,
+"updated_at": string,
+"upi_id": string | null,
+"verified_at": string | null,
+"verified_by": string | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "employee_profiles"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"review_kyc":
+{ Args: { "p_approve": boolean,"p_note"?: string,"p_user": string }; Returns: {
+              "address": string | null,
+"city": string | null,
+"created_at": string,
+"date_of_birth": string | null,
+"email": string | null,
+"full_name": string | null,
+"id": string,
+"id_last4": string | null,
+"id_type": string | null,
+"kyc_doc_path": string | null,
+"kyc_note": string | null,
+"kyc_status": string,
+"kyc_submitted_at": string | null,
+"kyc_verified_at": string | null,
+"occupation": string | null,
+"phone": string | null,
+"pincode": string | null,
+"preferred_language": string | null,
+"role": Database["public"]['Enums']["app_role"]
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "profiles"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"save_my_company_profile":
+{ Args: { "p": Json,"p_submit"?: boolean }; Returns: string
+                           },
+"save_my_employee_profile":
+{ Args: { "p": Json,"p_submit"?: boolean }; Returns: {
+              "address": string | null,
+"bank_ifsc": string | null,
+"bank_last4": string | null,
+"blood_group": string | null,
+"city": string | null,
+"date_of_birth": string | null,
+"emergency_name": string | null,
+"emergency_phone": string | null,
+"emergency_relation": string | null,
+"employee_id": string,
+"experience_years": number | null,
+"home_state": string | null,
+"id_last4": string | null,
+"id_type": string | null,
+"languages": (string)[],
+"org_id": string,
+"photo_path": string | null,
+"review_note": string | null,
+"safety_trained": boolean,
+"safety_training_date": string | null,
+"skills": (string)[],
+"status": string,
+"submitted_at": string | null,
+"trade": string | null,
+"updated_at": string,
+"upi_id": string | null,
+"verified_at": string | null,
+"verified_by": string | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "employee_profiles"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "search_docs":
 { Args: { "p_limit"?: number,"p_project": string,"p_query": string }; Returns: {
               "content": string,"document_id": string,"heading": string,"id": number,"rank": number,"title": string,"visibility": Database["public"]['Enums']["doc_visibility"]
             }[]
                            },
 "seed_ai_demo":
+{ Args: { "p_org": string }; Returns: string
+                           },
+"seed_flats_demo":
+{ Args: { "p_org": string }; Returns: string
+                           },
+"seed_workspaces_demo":
 { Args: { "p_org": string }; Returns: string
                            },
 "share_ai_insight":
@@ -1732,12 +2594,123 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"submit_contractor_bill":
+{ Args: { "p": Json }; Returns: {
+              "contractor_id": string,
+"created_at": string,
+"created_by": string | null,
+"decided_at": string | null,
+"decided_by": string | null,
+"decision_note": string | null,
+"gross_amount": number,
+"gst_pct": number,
+"id": string,
+"invoice_number": string | null,
+"net_payable": number | null,
+"note": string | null,
+"org_id": string,
+"paid_at": string | null,
+"payment_ref": string | null,
+"period_from": string | null,
+"period_to": string | null,
+"progress_claimed": number | null,
+"project_id": string,
+"retention_pct": number,
+"seq": number,
+"status": string,
+"tds_pct": number,
+"work_package_id": string | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "contractor_bills"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "submit_enquiry":
 { Args: { "p_email"?: string,"p_message"?: string,"p_name": string,"p_phone": string,"p_plot"?: string,"p_project": string,"p_visit_at"?: string }; Returns: string
+                           },
+"submit_my_kyc":
+{ Args: { "p_doc_path": string,"p_id_number": string,"p_id_type": string }; Returns: {
+              "address": string | null,
+"city": string | null,
+"created_at": string,
+"date_of_birth": string | null,
+"email": string | null,
+"full_name": string | null,
+"id": string,
+"id_last4": string | null,
+"id_type": string | null,
+"kyc_doc_path": string | null,
+"kyc_note": string | null,
+"kyc_status": string,
+"kyc_submitted_at": string | null,
+"kyc_verified_at": string | null,
+"occupation": string | null,
+"phone": string | null,
+"pincode": string | null,
+"preferred_language": string | null,
+"role": Database["public"]['Enums']["app_role"]
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "profiles"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"tower_percent":
+{ Args: { "p_stages": Json }; Returns: number
                            },
 "track_plot_event":
 { Args: { "p_kind": string,"p_plot": string }; Returns: undefined
                            },
+"update_crew_task":
+{ Args: { "p_note"?: string,"p_status": string,"p_task": string }; Returns: {
+              "contractor_id": string | null,
+"created_at": string,
+"created_by": string | null,
+"details": string | null,
+"done_at": string | null,
+"done_note": string | null,
+"due_date": string | null,
+"employee_id": string | null,
+"id": string,
+"org_id": string,
+"priority": string,
+"project_id": string | null,
+"status": string,
+"title": string,
+"work_package_id": string | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "crew_tasks"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"update_tower_progress":
+{ Args: { "p_body"?: string,"p_slabs": number,"p_stages": Json,"p_title": string,"p_tower": string }; Returns: {
+              "body": string | null,
+"created_at": string,
+"created_by": string | null,
+"id": string,
+"milestone_id": string | null,
+"milestone_progress": number | null,
+"org_id": string,
+"photo_paths": (string)[],
+"progress_percent": number | null,
+"project_id": string,
+"snapshot": Json | null,
+"title": string,
+"tower_id": string | null,
+"tower_snapshot": Json | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "construction_updates"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "update_work_progress":
 { Args: { "p_note"?: string,"p_package": string,"p_progress": number }; Returns: {
               "contract_value": number,
@@ -1759,6 +2732,92 @@ isOneToOne: false
                           SetofOptions: {
         from: "*"
         to: "work_packages"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"vendor_dispatch_po":
+{ Args: { "p_note"?: string,"p_po": string,"p_vehicle": string }; Returns: {
+              "accepted_at": string | null,
+"created_at": string,
+"created_by": string | null,
+"delivery_location": string | null,
+"dispatched_at": string | null,
+"gst_pct": number,
+"id": string,
+"items": NonNullable<Json>,
+"material_request_id": string | null,
+"org_id": string,
+"project_id": string,
+"promised_date": string | null,
+"required_by": string | null,
+"seq": number,
+"status": string,
+"subtotal": number,
+"terms": string | null,
+"total": number | null,
+"updated_at": string,
+"vehicle_number": string | null,
+"vendor_id": string,
+"vendor_note": string | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "purchase_orders"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"vendor_respond_po":
+{ Args: { "p_accept": boolean,"p_note"?: string,"p_po": string,"p_promised"?: string }; Returns: {
+              "accepted_at": string | null,
+"created_at": string,
+"created_by": string | null,
+"delivery_location": string | null,
+"dispatched_at": string | null,
+"gst_pct": number,
+"id": string,
+"items": NonNullable<Json>,
+"material_request_id": string | null,
+"org_id": string,
+"project_id": string,
+"promised_date": string | null,
+"required_by": string | null,
+"seq": number,
+"status": string,
+"subtotal": number,
+"terms": string | null,
+"total": number | null,
+"updated_at": string,
+"vehicle_number": string | null,
+"vendor_id": string,
+"vendor_note": string | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "purchase_orders"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"verify_organization":
+{ Args: { "p_org": string,"p_verified": boolean }; Returns: {
+              "address": string | null,
+"created_at": string,
+"email": string | null,
+"gst_number": string | null,
+"id": string,
+"invite_code": string | null,
+"is_demo": boolean,
+"is_verified": boolean,
+"name": string,
+"payment_plan": NonNullable<Json>,
+"phone": string | null,
+"signatory_name": string | null,
+"signatory_title": string | null,
+"token_percent": number,
+"website": string | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "organizations"
         isOneToOne: true
         isSetofReturn: false
       } },

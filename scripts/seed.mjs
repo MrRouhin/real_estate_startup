@@ -23,7 +23,7 @@ const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!URL || !KEY) { console.error('Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env.local'); process.exit(1); }
 const db = createClient(URL, KEY, { auth: { persistSession: false, autoRefreshToken: false } });
 const RESET = process.argv.includes('--reset');
-const PASSWORD = process.env.SEED_PASSWORD || 'Plotline@2026';
+const PASSWORD = process.env.SEED_PASSWORD || 'Remmo@2026';
 const ORG_NAME = 'Demo Developers Pvt Ltd';
 
 // ---------- helpers ----------
@@ -45,7 +45,7 @@ function step(msg) { console.log('•', msg); }
 
 // ---------- people ----------
 const STAFF = [
-  { key: 'admin', email: 'admin@plotline.dev', name: 'Plotline Admin', role: 'admin' },
+  { key: 'admin', email: 'admin@remmo.dev', name: 'REMMO Admin', role: 'admin' },
   { key: 'sales', email: 'sales@demodevelopers.dev', name: 'Ananya Sharma', role: 'seller', orgRole: 'owner' },
   { key: 'exec', email: 'karthik@demodevelopers.dev', name: 'Karthik Nair', role: 'seller', orgRole: 'staff' },
 ];
@@ -53,9 +53,9 @@ const PARTNERS = [
   { key: 'abc', email: 'contractor@abcconstructions.dev', name: 'Suresh Gowda', role: 'contractor' },
   { key: 'xyz_el', email: 'electrical@xyzelectricals.dev', name: 'Imran Pasha', role: 'contractor' },
   { key: 'vendor', email: 'vendor@xyzmaterials.dev', name: 'Deepak Jain', role: 'vendor' },
-  { key: 'emp', email: 'employee@plotline.dev', name: 'Ravi Kumar', role: 'employee', phone: '919999900003' },
+  { key: 'emp', email: 'employee@remmo.dev', name: 'Ravi Kumar', role: 'employee', phone: '919999900003' },
 ];
-const DEMO_BUYER = { key: 'buyer', email: 'buyer@plotline.dev', name: 'Aarav Mehta', role: 'buyer', phone: '919999900001' };
+const DEMO_BUYER = { key: 'buyer', email: 'buyer@remmo.dev', name: 'Aarav Mehta', role: 'buyer', phone: '919999900001' };
 const SAMPLE_BUYERS = [
   ['sandeep', 'Sandeep Rao', '919845011021'], ['priya', 'Priya Nair', '919900123417'], ['arjun', 'Arjun Mehta', '919741150982'],
   ['kavya', 'Kavya Reddy', '919620077310'], ['faisal', 'Faisal Khan', '919886140255'], ['meera', 'Meera Iyer', '919008461290'],
@@ -145,7 +145,7 @@ const LAYOUT = {
 const project = await must(db.from('projects').insert({
   org_id: org.id, name: 'Green Valley Residency', slug: 'green-valley-residency', city: 'Bengaluru North',
   address: 'Near Devanahalli, Bengaluru North (sample address)',
-  description: 'A 6.5-acre gated plotted layout with 40 ft and 30 ft internal roads, underground drainage, a central park and a clubhouse. Sample project for the Plotline demo.',
+  description: 'A 6.5-acre gated plotted layout with 40 ft and 30 ft internal roads, underground drainage, a central park and a clubhouse. Sample project for the REMMO demo.',
   rera_number: 'PRM/KA/RERA/SAMPLE/0001', status: 'ongoing', progress_percent: 0, is_published: true,
   layout: LAYOUT, layout_viewbox: '0 0 1000 700', site_lat: 13.2468, site_lng: 77.712, geofence_m: 300,
 }).select().single(), 'project');
@@ -565,12 +565,24 @@ step('Preparing AI demo data (baseline plans, budgets, progress history, demand 
   if (ai.error) console.warn('  (AI demo data skipped: ' + ai.error.message + ')');
 }
 
+step('Adding the apartment project (2 towers, 112 flats), partner profiles and letters');
+{
+  const fl = await db.rpc('seed_flats_demo', { p_org: org.id });
+  if (fl.error) console.warn('  (flats demo skipped: ' + fl.error.message + ')');
+}
+step('Adding partner workspaces: RA bills, purchase orders, price list, crew tasks and leave');
+{
+  const ws = await db.rpc('seed_workspaces_demo', { p_org: org.id });
+  if (ws.error) console.warn('  (workspaces demo skipped: ' + ws.error.message + ')');
+}
+
 const { data: pr } = await db.from('projects').select('progress_percent').eq('id', project.id).single();
+// (the apartment project "Green Valley Heights" is created by seed_flats_demo)
 console.log(`\n✓ Seeded "${ORG_NAME}" — project progress ${pr.progress_percent}%\n`);
 console.log('Demo logins (password ' + PASSWORD + '):');
 console.log('  Developer console  sales@demodevelopers.dev');
-console.log('  Buyer              buyer@plotline.dev   (or phone +91 99999 00001 with a test OTP)');
+console.log('  Buyer              buyer@remmo.dev   (or phone +91 99999 00001 with a test OTP)');
 console.log('  Contractor         contractor@abcconstructions.dev');
 console.log('  Vendor             vendor@xyzmaterials.dev');
-console.log('  Site employee      employee@plotline.dev');
-console.log('  Platform admin     admin@plotline.dev');
+console.log('  Site employee      employee@remmo.dev');
+console.log('  Platform admin     admin@remmo.dev');

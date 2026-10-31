@@ -26,7 +26,7 @@ export default async function Vendors() {
   return (
     <>
       <LiveRefresh tables={['deliveries']} filter={`org_id=eq.${orgId}`} />
-      <PageHeader eyebrow="Site" title="Vendors and deliveries" sub="A delivery adds stock only after the store inspects it. Rejected quantity is kept on record." />
+      <PageHeader emoji="🚚" eyebrow="Site" title="Vendors and deliveries" sub="A delivery adds stock only after the store inspects it. Rejected quantity is kept on record." />
       <Section title={`Waiting for inspection (${pending.length})`}>
         {pending.length === 0 ? <p className="text-[13.5px] text-ink-2">Nothing waiting. New deliveries from vendors show up here.</p> : (
           <div className="grid gap-3 md:grid-cols-2">

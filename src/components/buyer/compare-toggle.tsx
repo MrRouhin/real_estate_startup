@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Check, Columns3, Plus } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
 
-const KEY = 'plotline-compare';
+const KEY = 'remmo-compare';
 const read = (): string[] => { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch { return []; } };
 const write = (ids: string[]) => { try { localStorage.setItem(KEY, JSON.stringify(ids)); window.dispatchEvent(new Event('compare-change')); } catch { /* storage unavailable */ } };
 

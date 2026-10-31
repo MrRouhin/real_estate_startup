@@ -1,5 +1,6 @@
 import { cache } from 'react';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 import { createClient } from './supabase/server';
 import type { Profile } from './types';
 
@@ -22,9 +23,20 @@ export async function requireUser(next = '/') {
 export function homeFor(role: Profile['role'] | null | undefined) {
   switch (role) {
     case 'seller': case 'admin': return '/console';
-    case 'contractor': case 'vendor': case 'employee': return '/portal';
+    case 'contractor': return '/contractor';
+    case 'vendor': return '/vendor';
+    case 'employee': return '/employee';
     default: return '/me';
   }
+}
+
+export const PARTNER_HOMES = ['/contractor', '/vendor', '/employee'] as const;
+
+/** A contractor, vendor or site employee, with their linked record (null if the developer has not linked the login yet). */
+export async function requirePartner<R extends 'contractor' | 'vendor' | 'employee'>(role: R) {
+  const s = await requireUser('/' + role);
+  if (s.profile.role !== role) redirect(homeFor(s.profile.role));
+  return s;
 }
 
 /** Developer staff (or platform admin) with their organization and active project. */
@@ -44,6 +56,8 @@ export const requireStaff = cache(async () => {
     supabase.from('organizations').select('*').eq('id', orgId).single(),
     supabase.from('projects').select('*').eq('org_id', orgId).order('created_at'),
   ]);
-  const project = (projects || []).find((p) => p.status === 'ongoing') || (projects || [])[0] || null;
+  // the project picked in the console's switcher, else the first ongoing one
+  const picked = (await cookies()).get('remmo_project')?.value;
+  const project = (projects || []).find((p) => p.id === picked) || (projects || []).find((p) => p.status === 'ongoing') || (projects || [])[0] || null;
   return { ...s, org: org!, orgId, orgRole: membership?.org_role ?? 'owner', projects: projects || [], project };
 });

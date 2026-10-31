@@ -28,7 +28,7 @@ export default async function Bookings({ searchParams }: { searchParams: Promise
   return (
     <>
       <LiveRefresh tables={['bookings', 'payments']} filter={`org_id=eq.${orgId}`} />
-      <PageHeader eyebrow="Sales" title="Bookings" sub={<>Sales value <b className="num text-ink">{lakh(total)}</b> · collected <b className="num text-ink">{lakh(paid)}</b> ({total ? Math.round((paid / total) * 100) : 0}%)</>} />
+      <PageHeader emoji="🔑" eyebrow="Sales" title="Bookings" sub={<>Sales value <b className="num text-ink">{lakh(total)}</b> · collected <b className="num text-ink">{lakh(paid)}</b> ({total ? Math.round((paid / total) * 100) : 0}%)</>} />
       <div className="flex flex-wrap gap-1">{tabs.map(([v, l]) => <Link key={v} href={v ? `?status=${v}` : '?'} className="chip" aria-pressed={(status || '') === v}>{l}</Link>)}</div>
       {list.length === 0 ? <Empty title="No bookings here" /> : (
         <div className="card scroll-x">

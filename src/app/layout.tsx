@@ -9,9 +9,9 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toast';
 
 export const metadata: Metadata = {
-  title: { default: 'Plotline', template: '%s · Plotline' },
-  description: 'Book plots, follow construction live, and run your real estate project from one place.',
-  applicationName: 'Plotline',
+  title: { default: 'REMMO · Real estate management and marketing', template: '%s · REMMO' },
+  description: 'REMMO, the real estate management and marketing organisation: book plots and flats, tour homes in 3D before they are built, follow construction live, and run every project from one place.',
+  applicationName: 'REMMO',
 };
 
 export const viewport: Viewport = {

@@ -43,8 +43,8 @@ export default async function InsightsPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Intelligence" title="AI insights"
-        sub={<>Plotline reads the plan, progress, stores, attendance, deliveries and sales every day. <b className="text-ink">It suggests; you decide.</b> Nothing changes until someone presses Apply.</>}>
+      <PageHeader emoji="✨" eyebrow="Intelligence" title="AI insights"
+        sub={<>REMMO reads the plan, progress, stores, attendance, deliveries and sales every day. <b className="text-ink">It suggests; you decide.</b> Nothing changes until someone presses Apply.</>}>
         <span className="chip" title={on ? `Model: ${aiModelName()}` : 'Add ANTHROPIC_API_KEY in the hosting settings for plain-language reports, photo and invoice reading, and chat.'}>
           <Sparkles className="size-3.5" />{on ? `AI on · ${aiModelName()}` : 'Rules only (no AI key)'}
         </span>

@@ -53,23 +53,27 @@ export function Avatar({ name, size = 32, hue }: { name: string | null | undefin
   );
 }
 
-export function PageHeader({ eyebrow, title, children, sub }: { eyebrow?: string; title: string; sub?: React.ReactNode; children?: React.ReactNode }) {
+/** Page title with an optional emoji badge, a context line above and a one-line explanation below. */
+export function PageHeader({ emoji, eyebrow, title, children, sub }: { emoji?: string; eyebrow?: string; title: string; sub?: React.ReactNode; children?: React.ReactNode }) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
-      <div className="min-w-0">
-        {eyebrow && <div className="eyebrow mb-1">{eyebrow}</div>}
-        <h1 className="text-[26px] font-bold leading-tight">{title}</h1>
-        {sub && <div className="mt-1 text-[13.5px] text-ink-2">{sub}</div>}
+      <div className="flex min-w-0 items-start gap-3.5">
+        {emoji && <span className="emoji-badge mt-0.5" aria-hidden>{emoji}</span>}
+        <div className="min-w-0">
+          {eyebrow && <div className="eyebrow">{eyebrow}</div>}
+          <h1 className="text-[26px] font-bold leading-tight tracking-[-0.02em]">{title}</h1>
+          {sub && <div className="mt-1 max-w-[70ch] text-[13.5px] text-ink-2">{sub}</div>}
+        </div>
       </div>
       {children && <div className="flex flex-wrap items-center gap-2">{children}</div>}
     </div>
   );
 }
 
-export function Empty({ icon, title, children, href, cta }: { icon?: React.ReactNode; title: string; children?: React.ReactNode; href?: string; cta?: string }) {
+export function Empty({ icon, emoji, title, children, href, cta }: { icon?: React.ReactNode; emoji?: string; title: string; children?: React.ReactNode; href?: string; cta?: string }) {
   return (
-    <div className="grid justify-items-center gap-2 rounded-2xl border border-dashed border-line px-6 py-10 text-center text-ink-2">
-      {icon && <div className="text-ink-3">{icon}</div>}
+    <div className="glass grid justify-items-center gap-2 rounded-[22px] px-6 py-10 text-center text-ink-2">
+      {emoji ? <span className="emoji-badge" aria-hidden>{emoji}</span> : icon && <div className="text-ink-3">{icon}</div>}
       <div className="font-semibold text-ink">{title}</div>
       {children && <div className="max-w-sm text-[13.5px]">{children}</div>}
       {href && cta && <Link className="btn btn-primary btn-sm mt-1" href={href}>{cta}</Link>}

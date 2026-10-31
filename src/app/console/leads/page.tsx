@@ -34,7 +34,7 @@ export default async function LeadsPage() {
   return (
     <>
       <LiveRefresh tables={['leads']} filter={`org_id=eq.${orgId}`} />
-      <PageHeader eyebrow="CRM" title="Leads pipeline"
+      <PageHeader emoji="🤝" eyebrow="CRM" title="Leads pipeline"
         sub={<><b className="num text-ink">{open.length}</b> open leads · <b className="num text-ink">₹{(pipeline / 1e7).toFixed(2)} Cr</b> in budgets · <b className="num text-ink">{rows.filter((r) => r.band === 'hot').length}</b> hot · drag a card to move it. Scores update from activity, visits, budget fit and plot availability.</>}>
         <AddLead people={people} />
       </PageHeader>
