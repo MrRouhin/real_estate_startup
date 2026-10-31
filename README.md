@@ -188,6 +188,9 @@ scripts/seed.mjs       demo data for any Supabase project
 | 0011 hardening | trigger functions not callable over the API; fixed search_path (from the Supabase security advisor) |
 | 0012–0013 setup tooling | the `http` extension used once to upload the hosted demo's PDFs, then removed |
 | 0014 AI layer | baseline plans, material budgets, progress history, `ai_insights` (suggest → approve trail), staff-only `ai_checks`, `doc_chunks` full-text search, `plot_events` demand signals, `market_factors`, `share_ai_insight`, demo data function |
+| 0015 flats and people | apartment projects, `towers` (slabs cast, stage %), `unit_types` with floor-plan layouts, flats as `plots` rows (`kind = 'flat'`), construction-linked payment plans, `employee_profiles` (18+, last 4 digits only), `letters` (issue → acknowledge), invite codes and `access_requests`, `update_tower_progress` |
+| 0016 partner workspaces | `contractor_bills` (RA bills capped by verified progress), `purchase_orders` (accept → dispatch → delivered), `vendor_catalog`, `crew_tasks`, `leave_requests`, supervisor-marked attendance, delivery payments, `decide_access_request` |
+| 0017 real users | buyer profile and KYC (`submit_my_kyc`, `review_kyc`), developer self sign-up (`create_my_organization`), platform verification of companies, `is_demo` flag for the sample company |
 
 Run the SQL tests on any Postgres 15+:
 ```bash
