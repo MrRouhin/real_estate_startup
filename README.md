@@ -197,13 +197,14 @@ scripts/seed.mjs       demo data for any Supabase project
 | 0015 flats and people | apartment projects, `towers` (slabs cast, stage %), `unit_types` with floor-plan layouts, flats as `plots` rows (`kind = 'flat'`), construction-linked payment plans, `employee_profiles` (18+, last 4 digits only), `letters` (issue → acknowledge), invite codes and `access_requests`, `update_tower_progress` |
 | 0016 partner workspaces | `contractor_bills` (RA bills capped by verified progress), `purchase_orders` (accept → dispatch → delivered), `vendor_catalog`, `crew_tasks`, `leave_requests`, supervisor-marked attendance, delivery payments, `decide_access_request` |
 | 0017 real users | buyer profile and KYC (`submit_my_kyc`, `review_kyc`), developer self sign-up (`create_my_organization`), platform verification of companies, `is_demo` flag for the sample company |
+| 0018 publish audit | every publish or unpublish of a project is written to `activity_log` with who did it, including changes made in the Supabase table editor |
 
 Run the SQL tests on any Postgres 15+:
 ```bash
 createdb remmo_test
 psql -d remmo_test -f supabase/tests/local_supabase_stub.sql
 for f in supabase/migrations/*.sql; do psql -v ON_ERROR_STOP=1 -d remmo_test -f "$f"; done
-for t in booking_flow_test content_test operations_crm_test ai_layer_test flats_people_test workspaces_test real_users_test; do psql -d remmo_test -f supabase/tests/$t.sql; done
+for t in booking_flow_test content_test operations_crm_test ai_layer_test flats_people_test workspaces_test real_users_test publish_audit_test; do psql -d remmo_test -f supabase/tests/$t.sql; done
 ```
 Every check prints `t`.
 

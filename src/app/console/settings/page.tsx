@@ -33,7 +33,7 @@ export default async function Settings() {
           <Section title="Invite code"><p className="text-[13px] text-ink-2">Contractors, suppliers and workers join with this code.</p><CopyInvite code={org.invite_code ?? ''} /></Section>
           <Section title="Projects">
             <ul className="grid gap-2">{projects.map((p) => (
-              <li key={p.id} className="flex items-center justify-between gap-2 text-[13.5px]"><span><b>{p.name}</b><span className="block text-[12px] capitalize text-ink-3">{p.kind === 'apartments' ? 'Apartments' : 'Plotted layout'} · {p.status}</span></span><PublishToggle id={p.id} published={p.is_published} /></li>
+              <li key={p.id} className="flex items-center justify-between gap-2 text-[13.5px]"><span><b>{p.name}</b><span className="block text-[12px] capitalize text-ink-3">{p.kind === 'apartments' ? 'Apartments' : 'Plotted layout'} · {p.status}</span></span><PublishToggle id={p.id} name={p.name} published={p.is_published} /></li>
             ))}</ul>
             {!org.is_verified && <p className="mt-3 text-[12px] text-ink-3">Published projects become visible to buyers once REMMO verifies your company’s RERA and GST details.</p>}
           </Section>
