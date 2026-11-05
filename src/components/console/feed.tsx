@@ -1,4 +1,4 @@
-import { AlertTriangle, BadgeIndianRupee, Box, CalendarCheck, Hammer, Info, KeyRound, Megaphone, Tag, Truck, UserPlus, UserRoundCheck } from 'lucide-react';
+import { AlertTriangle, BadgeIndianRupee, Box, CalendarCheck, Eye, Hammer, Info, KeyRound, Megaphone, Tag, Truck, UserPlus, UserRoundCheck } from 'lucide-react';
 import { ago } from '@/lib/format';
 
 const KIND: Record<string, { icon: typeof Info; color: string }> = {
@@ -8,6 +8,7 @@ const KIND: Record<string, { icon: typeof Info; color: string }> = {
   update: { icon: Megaphone, color: 'var(--accent)' }, delivery: { icon: Truck, color: 'var(--st-booked)' },
   stock: { icon: Box, color: 'var(--ink-2)' }, attendance: { icon: UserRoundCheck, color: 'var(--good)' },
   alert: { icon: AlertTriangle, color: 'var(--bad)' }, info: { icon: Hammer, color: 'var(--ink-3)' },
+  publish: { icon: Eye, color: 'var(--st-held)' },
 };
 
 export function ActivityFeed({ items }: { items: { id: number; kind: string; message: string; created_at: string }[] }) {

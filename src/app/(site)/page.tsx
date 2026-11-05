@@ -82,6 +82,15 @@ export default async function Home() {
         )}
       </section>
 
+      {list.length === 0 ? (
+        /* Nothing published yet: say so plainly instead of a row of zeros */
+        <section id="projects" className="card grid scroll-mt-24 justify-items-center gap-3 px-6 py-12 text-center">
+          <span className="grid size-12 place-items-center rounded-full bg-[color-mix(in_srgb,var(--accent)_14%,transparent)] text-accent"><HardHat className="size-6" /></span>
+          <h2 className="text-[26px] font-bold tracking-[-0.02em]">New projects are on their way</h2>
+          <p className="max-w-md text-ink-2">Developers are getting their layouts and towers ready. Check back soon to explore homes and plots in 3D.</p>
+          <div className="mt-2 flex flex-wrap justify-center gap-2"><Link href="/start" className="btn btn-primary">List your project <ArrowRight className="size-4" /></Link><Link href="/login/developer" className="btn btn-outline">Try the demo console</Link></div>
+        </section>
+      ) : (<>
       {/* Live numbers */}
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[['Projects live', list.length], ['Homes and plots listed', totalUnits], ['Available right now', available], ['Site updates posted', totalUpdates]].map(([label, n]) => (
@@ -135,6 +144,7 @@ export default async function Home() {
           })}
         </Stagger>
       </section>
+      </>)}
 
       {/* How it works */}
       <section className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
